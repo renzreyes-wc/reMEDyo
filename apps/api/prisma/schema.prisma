@@ -1,0 +1,341 @@
+// reMEDyo data model.
+//
+// Two shaping decisions, both from design.md:
+//
+//  1. Role-specific fields live in PatientProfile / DoctorProfile rather than
+//     a sparse shared table, so neither role carries the other's columns.
+//  2. Notes and prescriptions reference the *appointment*, not the patient.
+//     "Who may read this" is then always answered by the appointment's two
+//     participants, which is exactly how the medical-records spec defines it.
+//
+// Nothing is hard-deleted: appointments carry a cancelled state, notes are
+// revised rather than removed, and audit entries are insert-only.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PATIENT
+  DOCTOR
+  ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+}
+
+enum ApprovalState {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AppointmentState {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum SessionState {
+  SCHEDULED
+  JOINED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum CancelledBy {
+  PATIENT
+  DOCTOR
+  ADMIN
+}
+
+enum Specialization {
+  GENERAL_PRACTICE
+  CARDIOLOGY
+  DERMATOLOGY
+  PEDIATRICS
+  PSYCHIATRY
+  ORTHOPEDICS
+  NEUROLOGY
+  GASTROENTEROLOGY
+  OBSTETRICS_GYNECOLOGY
+  ENDOCRINOLOGY
+  OPHTHALMOLOGY
+  PULMONOLOGY
+  ENT
+}
+
+enum MedicalHistoryKind {
+  ALLERGY
+  MEDICATION
+  CONDITION
+  NOTE
+}
+
+enum NotificationType {
+  APPOINTMENT_BOOKED
+  APPOINTMENT_RESCHEDULED
+  APPOINTMENT_CANCELLED
+  APPOINTMENT_REMINDER
+  RECORDS_AVAILABLE
+  DOCTOR_APPROVED
+  DOCTOR_REJECTED
+  ACCOUNT_STATUS_CHANGED
+}
+
+enum AuditAction {
+  ACCOUNT_ACTIVATED
+  ACCOUNT_SUSPENDED
+  ACCOUNT_DEACTIVATED
+  DOCTOR_APPROVED
+  DOCTOR_REJECTED
+  DOCTOR_SPECIALIZATION_UPDATED
+  APPOINTMENT_CANCELLED
+}
+
+/// Credentials and authorization. Never returns passwordHash to any client.
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  passwordHash String
+  role         Role
+  status       AccountStatus @default(ACTIVE)
+  /// Reason recorded when an admin suspends or deactivates the account.
+  statusReason String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  patientProfile PatientProfile?
+  doctorProfile  DoctorProfile?
+  notifications  Notification[]
+  auditEntries   AuditLog[]      @relation("AuditActor")
+  sentMessages   Message[]
+
+  @@index([role, status])
+}
+
+model PatientProfile {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName      String?
+  dateOfBirth   DateTime?
+  contactNumber String?
+  /// Kilograms. Optional, and stored as given rather than normalised.
+  weightKg      Float?
+  /// Centimetres.
+  heightCm      Float?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  history      MedicalHistoryEntry[]
+  appointments Appointment[]
+}
+
+model MedicalHistoryEntry {
+  id          String             @id @default(cuid())
+  patientId   String
+  patient     PatientProfile     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  kind        MedicalHistoryKind
+  description String
+  recordedAt  DateTime           @default(now())
+
+  @@index([patientId, kind])
+}
+
+model DoctorProfile {
+  id              String           @id @default(cuid())
+  userId          String           @unique
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName        String
+  specializations Specialization[]
+  bio             String           @default("")
+  yearsExperience Int              @default(0)
+  licenseNumber   String           @default("")
+  /// Displayed to patients before booking. Prototype money, never charged.
+  consultationFee Decimal          @default(0) @db.Decimal(10, 2)
+  approvalState   ApprovalState    @default(PENDING)
+  /// Shown to the doctor on their own profile when rejected.
+  rejectionReason String?
+  reviewedAt      DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  availabilityWindows    AvailabilityWindow[]
+  availabilityExceptions AvailabilityException[]
+  appointments           Appointment[]
+
+  @@index([approvalState])
+}
+
+/// A recurring weekly window. Bookable slots are derived from these on read,
+/// never materialised, so there is no generation job and nothing to drift.
+model AvailabilityWindow {
+  id       String        @id @default(cuid())
+  doctorId String
+  doctor   DoctorProfile @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  /// 0 = Sunday .. 6 = Saturday.
+  dayOfWeek Int
+  /// Minutes from midnight. 540 = 09:00.
+  startMinute Int
+  endMinute   Int
+
+  @@index([doctorId, dayOfWeek])
+}
+
+/// A single date the doctor has blocked out, overriding the weekly pattern.
+model AvailabilityException {
+  id       String        @id @default(cuid())
+  doctorId String
+  doctor   DoctorProfile @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  /// Midnight UTC of the blocked date.
+  date   DateTime
+  reason String?
+
+  @@unique([doctorId, date])
+}
+
+model Appointment {
+  id        String         @id @default(cuid())
+  patientId String
+  patient   PatientProfile @relation(fields: [patientId], references: [id])
+  doctorId  String
+  doctor    DoctorProfile  @relation(fields: [doctorId], references: [id])
+
+  startsAt       DateTime
+  endsAt         DateTime
+  state          AppointmentState @default(SCHEDULED)
+  reasonForVisit String
+
+  cancelledBy        CancelledBy?
+  cancellationReason String?
+  cancelledAt        DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  session       ConsultationSession?
+  note          ConsultationNote?
+  prescriptions Prescription[]
+  messages      Message[]
+
+  /// Arbitrates the booking race. A partial unique index restricted to
+  /// SCHEDULED rows is added by migration: Prisma cannot express a filtered
+  /// unique index, and an unfiltered one would block rebooking a slot whose
+  /// previous appointment was cancelled.
+  @@index([doctorId, startsAt])
+  @@index([patientId, startsAt])
+  @@index([state, startsAt])
+}
+
+model ConsultationSession {
+  id            String       @id @default(cuid())
+  appointmentId String       @unique
+  appointment   Appointment  @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  state         SessionState @default(SCHEDULED)
+  patientJoinedAt DateTime?
+  doctorJoinedAt  DateTime?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  updatedAt       DateTime     @updatedAt
+}
+
+/// The in-session text channel, which doubles as the transcript both parties
+/// keep reading after the session is completed.
+model Message {
+  id            String      @id @default(cuid())
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  senderId      String
+  sender        User        @relation(fields: [senderId], references: [id])
+  body          String
+  sentAt        DateTime    @default(now())
+
+  @@index([appointmentId, sentAt])
+}
+
+/// At most one note per appointment. Revised, never deleted.
+model ConsultationNote {
+  id              String      @id @default(cuid())
+  appointmentId   String      @unique
+  appointment     Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  findings        String
+  diagnosis       String
+  recommendations String
+  followUp        String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+/// Fictional throughout. The UI labels every one as not valid for dispensing.
+model Prescription {
+  id            String      @id @default(cuid())
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  medication    String
+  dosage        String
+  frequency     String
+  durationDays  Int
+  instructions  String?
+  issuedAt      DateTime    @default(now())
+
+  @@index([appointmentId])
+}
+
+/// Written inside the transaction of the event that causes it, so a rolled
+/// back booking cannot leave a phantom notification behind.
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  body      String
+  /// In-app route the notification points at, if any.
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+}
+
+/// Insert-only. No update or delete path exists anywhere in the API.
+model AuditLog {
+  id         String      @id @default(cuid())
+  actorId    String
+  actor      User        @relation("AuditActor", fields: [actorId], references: [id])
+  action     AuditAction
+  targetType String
+  targetId   String
+  reason     String?
+  createdAt  DateTime    @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+}
+
+/// Seeded reference data driving deterministic matching. A symptom maps to a
+/// specialization with a weight; scoring sums weights. No model, no API call.
+model SymptomRule {
+  id             String         @id @default(cuid())
+  symptomId      String
+  label          String
+  specialization Specialization
+  weight         Int            @default(1)
+  /// Triggers emergency guidance ahead of any suggestions.
+  emergency      Boolean        @default(false)
+  /// Comma-separated keywords matched against patient free text.
+  keywords       String         @default("")
+
+  @@unique([symptomId, specialization])
+  @@index([symptomId])
+}

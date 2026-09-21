@@ -1,0 +1,75 @@
+# reMEDyo — the whole system, locally, in one command.
+#
+#   docker compose up --build
+#
+# Brings up Postgres, waits for it to be genuinely healthy, applies migrations,
+# seeds demonstration data, and serves the app. No second terminal, no manual
+# migrate step: a reviewer should reach a populated, working application from a
+# clean checkout without reading anything first.
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: remedyo-postgres
+    environment:
+      POSTGRES_USER: remedyo
+      POSTGRES_PASSWORD: remedyo
+      POSTGRES_DB: remedyo
+    ports:
+      # Exposed so you can inspect the database with psql while it runs.
+      - "5433:5432"
+    volumes:
+      - remedyo-db:/var/lib/postgresql/data
+    healthcheck:
+      # The api waits on this rather than on a fixed sleep, so a slow first
+      # boot cannot race the migration step.
+      test: ["CMD-SHELL", "pg_isready -U remedyo -d remedyo"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: remedyo-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://remedyo:remedyo@postgres:5432/remedyo?schema=public
+      JWT_SECRET: ${JWT_SECRET:-dev-only-secret-change-me}
+      API_PORT: 4000
+      WEB_ORIGIN: http://localhost:3000
+      NODE_ENV: production
+    ports:
+      - "4000:4000"
+    healthcheck:
+      test:
+        ["CMD-SHELL", "node -e \"fetch('http://localhost:4000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        # Baked at build time: the browser resolves this, not the container,
+        # so it must be the host-visible address rather than "api".
+        NEXT_PUBLIC_API_URL: http://localhost:4000
+    container_name: remedyo-web
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    ports:
+      - "3000:3000"
+
+volumes:
+  remedyo-db:

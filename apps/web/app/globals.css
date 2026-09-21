@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+/*
+ * reMEDyo design tokens.
+ *
+ * A healthcare product has to read as calm and trustworthy before it reads as
+ * clever. The palette is a deep teal (clinical, not corporate blue) on warm
+ * neutrals, with a single amber accent reserved for prototype and safety
+ * notices so those never blend into ordinary UI.
+ */
+@theme {
+  --color-brand-50: #eefbf7;
+  --color-brand-100: #d5f5eb;
+  --color-brand-200: #aeead8;
+  --color-brand-300: #78d8bf;
+  --color-brand-400: #43bfa1;
+  --color-brand-500: #1fa587;
+  --color-brand-600: #12856e;
+  --color-brand-700: #106a5a;
+  --color-brand-800: #105549;
+  --color-brand-900: #0f473e;
+  --color-brand-950: #032822;
+
+  --color-ink-50: #f7f8f8;
+  --color-ink-100: #eceef0;
+  --color-ink-200: #d5d9dd;
+  --color-ink-300: #b1b9c1;
+  --color-ink-400: #86929e;
+  --color-ink-500: #6a7682;
+  --color-ink-600: #5a636e;
+  --color-ink-700: #4d545d;
+  --color-ink-800: #43484f;
+  --color-ink-900: #3b3f45;
+  --color-ink-950: #26282d;
+
+  --color-alert-50: #fff8ed;
+  --color-alert-100: #ffefd4;
+  --color-alert-200: #ffdaa8;
+  --color-alert-400: #ffa53d;
+  --color-alert-600: #e36d09;
+  --color-alert-700: #bb500a;
+  --color-alert-900: #7a3510;
+
+  --color-danger-50: #fef2f2;
+  --color-danger-200: #fecaca;
+  --color-danger-600: #dc2626;
+  --color-danger-700: #b91c1c;
+
+  --color-surface: #ffffff;
+  --color-canvas: #f7f9f9;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+
+  --radius-card: 0.875rem;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink-900);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Respect users who ask for less motion; several panels poll and re-render. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand-600);
+  outline-offset: 2px;
+}
