@@ -49,4 +49,8 @@ EXPOSE 4000
 
 # Migrate, then seed, then serve. The seed is idempotent, so a restart against
 # an existing volume changes nothing.
-CMD ["sh", "-c", "pnpm exec prisma migrate deploy && pnpm exec tsx prisma/seed.ts && node dist/main.js"]
+#
+# The binaries are invoked directly rather than through `pnpm exec`: pnpm would
+# re-run the workspace lifecycle scripts, and the shared package's `prepare`
+# (a tsc build) has no sources in this image — only its compiled dist.
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && ./node_modules/.bin/tsx prisma/seed.ts && node dist/main.js"]

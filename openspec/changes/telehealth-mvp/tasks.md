@@ -8,7 +8,7 @@ Ordered so the patient spine — register, discover, book, consult, read notes �
 - [x] 1.2 Scaffold `apps/web` as a Next.js App Router project with TypeScript and Tailwind, without `src/`; verify `pnpm --filter web dev` serves the default page at `app/page.tsx`
 - [x] 1.3 Scaffold `apps/api` as a NestJS project with TypeScript; verify `pnpm --filter api start:dev` boots and a `GET /api/health` returns 200
 - [x] 1.4 Create `packages/shared` exporting role, appointment-state, session-state, account-status, and specialization enums plus shared DTO types; verify both apps import a shared enum and typecheck
-- [ ] 1.5 Add `docker-compose.yml` with a `postgres` service including a healthcheck, and confirm `docker compose up postgres` reaches healthy and accepts a `psql` connection
+- [x] 1.5 Add `docker-compose.yml` with a `postgres` service including a healthcheck, and confirm `docker compose up postgres` reaches healthy and accepts a `psql` connection
 - [x] 1.6 Wire Prisma into `apps/api` with the Compose database URL; verify `pnpm --filter api prisma db push` connects and succeeds against the running container
 
 ## 2. Data model and seed (~30 min)
@@ -94,11 +94,11 @@ Ordered so the patient spine — register, discover, book, consult, read notes �
 
 ## 11. Deliverables (~30 min)
 
-- [ ] 11.1 Add Dockerfiles for `apps/web` and `apps/api` and complete `docker-compose.yml` so the api waits on the postgres healthcheck and runs `prisma migrate deploy` plus the seed before accepting traffic; verify `docker compose up --build` on a clean volume reaches a populated working app with no manual steps
+- [x] 11.1 Add Dockerfiles for `apps/web` and `apps/api` and complete `docker-compose.yml` so the api waits on the postgres healthcheck and runs `prisma migrate deploy` plus the seed before accepting traffic; verify `docker compose up --build` on a clean volume reaches a populated working app with no manual steps
 - [x] 11.2 Write the root `README.md` with prerequisites, the single-command local setup, seeded demo credentials for each role, and the API surface overview; verify a reader following it from a clean clone reaches a running app
 - [x] 11.3 Add error handling and input validation consistently across the API — a global exception filter and DTO validation — so failures return structured JSON rather than stack traces; verify a malformed booking request returns a structured validation error
 - [ ] 11.4 Initialise the git repository, commit, and push to GitHub; verify the remote contains the full working tree
-- [ ] 11.5 Walk the complete core journey on the Compose stack from a clean volume — register a patient, complete the profile, use guided matching, book, both parties join the consultation, doctor completes and records notes plus a prescription, patient reads them — and verify every step works before recording anything
+- [x] 11.5 Walk the complete core journey on the Compose stack from a clean volume — register a patient, complete the profile, use guided matching, book, both parties join the consultation, doctor completes and records notes plus a prescription, patient reads them — and verify every step works before recording anything
 - [x] 11.6 Prepare the presentation deck covering product overview, key features, and value proposition; verify it covers all three
 - [ ] 11.7 Record the demonstration video under fifteen minutes covering the walkthrough, the architecture, and the named limitations — polling over WebSockets, no token revocation, no real audio or video, fictional prescriptions; verify the recording is under the limit and names each limitation
 

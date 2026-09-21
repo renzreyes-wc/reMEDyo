@@ -19,7 +19,10 @@ services:
       # Exposed so you can inspect the database with psql while it runs.
       - "5433:5432"
     volumes:
-      - remedyo-db:/var/lib/postgresql/data
+      # Postgres 18+ expects a single mount at /var/lib/postgresql and places
+      # the cluster in a version-named subdirectory itself. Mounting the old
+      # /var/lib/postgresql/data path makes the entrypoint refuse to start.
+      - remedyo-db:/var/lib/postgresql
     healthcheck:
       # The api waits on this rather than on a fixed sleep, so a slow first
       # boot cannot race the migration step.
