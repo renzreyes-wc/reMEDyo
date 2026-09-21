@@ -1,0 +1,36 @@
+# Fly.io config for the reMEDyo frontend.
+#
+# Run every command FROM THE REPOSITORY ROOT (see apps/api/fly.toml).
+#
+# Deploy this AFTER the api, passing the api's public URL as a build argument.
+# NEXT_PUBLIC_API_URL is resolved by the BROWSER, not the container, so it must
+# be the public hostname — an internal .flycast address will not work.
+#
+#   fly launch --no-deploy --config apps/web/fly.toml
+#   fly deploy . --config apps/web/fly.toml \
+#     --build-arg NEXT_PUBLIC_API_URL=https://remedyo-api.fly.dev
+#
+# Then close the loop on the api side:
+#   fly secrets set WEB_ORIGIN="https://remedyo-web.fly.dev" --app remedyo-api
+
+app = "remedyo-web"
+primary_region = "sin"
+
+[build]
+  dockerfile = "apps/web/Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3000"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1

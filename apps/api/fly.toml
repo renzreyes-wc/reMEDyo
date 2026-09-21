@@ -1,0 +1,51 @@
+# Fly.io config for the reMEDyo API.
+#
+# Run every command FROM THE REPOSITORY ROOT: the Dockerfiles copy the pnpm
+# workspace manifests, so the build context has to be the root, not apps/api.
+#
+# Deploy this BEFORE the web app — the web build bakes the API's public URL in
+# at build time, so the api needs a hostname first.
+#
+#   fly launch --no-deploy --config apps/api/fly.toml
+#   fly postgres create --name remedyo-db
+#   fly postgres attach remedyo-db --app remedyo-api        # sets DATABASE_URL
+#   fly secrets set JWT_SECRET="$(openssl rand -hex 32)" --app remedyo-api
+#   fly deploy . --config apps/api/fly.toml
+#
+# Fly Postgres is a Postgres instance on Fly's own infrastructure rather than a
+# third-party database service, so this stays inside the brief's
+# standalone-runtime rule.
+
+app = "remedyo-api"
+primary_region = "sin"
+
+[build]
+  dockerfile = "apps/api/Dockerfile"
+
+[env]
+  API_PORT = "4000"
+  NODE_ENV = "production"
+  # Once the web app exists, point the api at it so CORS allows the session
+  # cookie:
+  #   fly secrets set WEB_ORIGIN="https://remedyo-web.fly.dev" --app remedyo-api
+
+[http_service]
+  internal_port = 4000
+  force_https = true
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+  # Held at 1 so the migrate-and-seed start command cannot run concurrently on
+  # two machines against the same database.
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    grace_period = "40s"
+    interval = "15s"
+    method = "GET"
+    timeout = "5s"
+    path = "/api/health"
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1

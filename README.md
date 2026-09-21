@@ -230,6 +230,38 @@ Named openly, because they were choices rather than accidents:
 
 ---
 
+## Optional: deploying to Fly.io
+
+Three first-party components — api, web, and Fly Postgres — so no SaaS or
+external feature API enters the runtime. Configs live at `apps/api/fly.toml`
+and `apps/web/fly.toml`; run everything **from the repository root**, because
+the Dockerfiles copy the pnpm workspace manifests.
+
+Order matters: the web build bakes the API's public URL in at build time, so
+the api must exist first.
+
+```bash
+# 1. API, with its database
+fly launch --no-deploy --config apps/api/fly.toml
+fly postgres create --name remedyo-db
+fly postgres attach remedyo-db --app remedyo-api          # sets DATABASE_URL
+fly secrets set JWT_SECRET="$(openssl rand -hex 32)" --app remedyo-api
+fly deploy . --config apps/api/fly.toml
+
+# 2. Web, pointed at the deployed API
+fly launch --no-deploy --config apps/web/fly.toml
+fly deploy . --config apps/web/fly.toml \
+  --build-arg NEXT_PUBLIC_API_URL=https://remedyo-api.fly.dev
+
+# 3. Close the CORS loop so the session cookie travels
+fly secrets set WEB_ORIGIN="https://remedyo-web.fly.dev" --app remedyo-api
+```
+
+The api container applies migrations and runs the idempotent seed on start, so
+the deployed app comes up populated exactly as it does locally.
+
+---
+
 ## Tech stack
 
 TypeScript throughout · Next.js 16 (App Router) · React 19 · Tailwind CSS 4 ·
