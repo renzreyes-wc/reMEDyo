@@ -4,24 +4,24 @@
  */
 export function Logo({ className = '' }: { className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2 ${className}`}>
+    <span className={`inline-flex items-center gap-2.5 ${className}`}>
       <svg
-        width="28"
-        height="28"
-        viewBox="0 0 28 28"
+        width="30"
+        height="30"
+        viewBox="0 0 30 30"
         fill="none"
         aria-hidden="true"
         className="shrink-0"
       >
-        <rect width="28" height="28" rx="8" fill="var(--color-brand-600)" />
+        <rect width="30" height="30" rx="10" fill="var(--color-brand-600)" />
         <path
-          d="M14 7.5v13M7.5 14h13"
-          stroke="white"
-          strokeWidth="2.5"
+          d="M15 8.5v13M8.5 15h13"
+          stroke="var(--color-text-on-brand)"
+          strokeWidth="2.75"
           strokeLinecap="round"
         />
       </svg>
-      <span className="text-lg font-semibold tracking-tight text-ink-900">
+      <span className="font-display text-xl font-semibold tracking-tight text-text-primary">
         re<span className="text-brand-600">MED</span>yo
       </span>
     </span>

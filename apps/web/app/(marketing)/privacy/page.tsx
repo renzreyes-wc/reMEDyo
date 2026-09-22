@@ -6,10 +6,10 @@ export const metadata: Metadata = { title: 'Privacy policy' };
 export default function PrivacyPage() {
   return (
     <article className="mx-auto w-full max-w-3xl px-4 py-14 sm:px-6">
-      <h1 className="text-3xl font-semibold tracking-tight text-ink-900">
+      <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
         Privacy policy
       </h1>
-      <p className="mt-2 text-sm text-ink-500">
+      <p className="mt-2 text-sm text-text-muted">
         Last updated 21 September 2026
       </p>
 
@@ -17,9 +17,9 @@ export default function PrivacyPage() {
         <PrototypeDisclaimer />
       </div>
 
-      <div className="mt-10 space-y-8 text-ink-700">
+      <div className="mt-10 space-y-8 text-text-primary">
         <section>
-          <h2 className="text-xl font-semibold text-ink-900">What we store</h2>
+          <h2 className="text-xl font-semibold text-text-primary">What we store</h2>
           <p className="mt-2 leading-relaxed">
             All data lives in a single PostgreSQL database owned by this
             application. For a patient that is: the email address you registered
@@ -33,7 +33,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-ink-900">
+          <h2 className="text-xl font-semibold text-text-primary">
             Your password is never stored
           </h2>
           <p className="mt-2 leading-relaxed">
@@ -44,7 +44,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-ink-900">Who can see your record</h2>
+          <h2 className="text-xl font-semibold text-text-primary">Who can see your record</h2>
           <p className="mt-2 leading-relaxed">
             You can always read your own record. A doctor can read it only if
             they hold at least one appointment with you, past or upcoming — that
@@ -56,7 +56,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-ink-900">
+          <h2 className="text-xl font-semibold text-text-primary">
             No third parties are involved
           </h2>
           <p className="mt-2 leading-relaxed">
@@ -70,7 +70,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-ink-900">Cookies</h2>
+          <h2 className="text-xl font-semibold text-text-primary">Cookies</h2>
           <p className="mt-2 leading-relaxed">
             One cookie is set, when you sign in: a session token. It is marked
             httpOnly, so no script on the page can read it, and it expires after
@@ -79,7 +79,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-ink-900">Retention</h2>
+          <h2 className="text-xl font-semibold text-text-primary">Retention</h2>
           <p className="mt-2 leading-relaxed">
             Consultation notes, prescriptions and audit entries are retained
             rather than deleted, so a clinical record cannot quietly change
@@ -89,7 +89,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-ink-900">
+          <h2 className="text-xl font-semibold text-text-primary">
             Please do not enter real health data
           </h2>
           <p className="mt-2 leading-relaxed">

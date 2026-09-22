@@ -4,8 +4,8 @@ import { PrototypeDisclaimer } from '@/components/ui/disclaimer';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col bg-white">
-      <header className="border-b border-ink-100">
+    <div className="flex min-h-screen flex-col bg-surface">
+      <header className="border-b border-border-subtle">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center px-4 sm:px-6">
           <Link href="/" aria-label="reMEDyo home">
             <Logo />

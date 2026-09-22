@@ -30,12 +30,12 @@ export default function FindDoctorPage() {
         description="Browse the directory, or tell us what is wrong and we will suggest who fits."
       />
 
-      <div className="mb-6 inline-flex rounded-lg border border-ink-200 bg-white p-1">
+      <div className="mb-6 inline-flex rounded-md border border-border-subtle bg-surface p-1">
         <button
           type="button"
           onClick={() => setMode('browse')}
           className={`rounded-md px-4 py-1.5 text-sm font-medium ${
-            mode === 'browse' ? 'bg-brand-600 text-white' : 'text-ink-600 hover:text-ink-900'
+            mode === 'browse' ? 'bg-brand-600 text-white' : 'text-text-muted hover:text-text-primary'
           }`}
         >
           Browse all
@@ -44,7 +44,7 @@ export default function FindDoctorPage() {
           type="button"
           onClick={() => setMode('guided')}
           className={`rounded-md px-4 py-1.5 text-sm font-medium ${
-            mode === 'guided' ? 'bg-brand-600 text-white' : 'text-ink-600 hover:text-ink-900'
+            mode === 'guided' ? 'bg-brand-600 text-white' : 'text-text-muted hover:text-text-primary'
           }`}
         >
           Help me choose
@@ -98,10 +98,10 @@ function BrowseDoctors() {
               <option key={s} value={s}>{SPECIALIZATION_LABELS[s]}</option>
             ))}
           </Select>
-          <label className="flex items-center gap-2 whitespace-nowrap px-1 text-sm text-ink-700">
+          <label className="flex items-center gap-2 whitespace-nowrap px-1 text-sm text-text-primary">
             <input
               type="checkbox"
-              className="h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500"
+              className="h-4 w-4 rounded border-border-strong text-brand-600 focus:ring-brand-600"
               checked={availableSoon}
               onChange={(e) => setAvailableSoon(e.target.checked)}
             />
@@ -137,7 +137,7 @@ function BrowseDoctors() {
         />
       ) : (
         <>
-          <p className="mb-3 text-sm text-ink-500">
+          <p className="mb-3 text-sm text-text-muted">
             {doctors.length} {doctors.length === 1 ? 'doctor' : 'doctors'}
           </p>
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
@@ -195,15 +195,15 @@ function GuidedMatch() {
       <Card className="h-fit">
         <CardHeader title="What is bothering you?" description="Pick everything that applies." />
         <form onSubmit={submit} className="space-y-4 p-5">
-          <div className="max-h-80 space-y-1 overflow-y-auto rounded-lg border border-ink-200 p-3">
+          <div className="max-h-80 space-y-1 overflow-y-auto rounded-md border border-border-subtle p-3">
             {symptoms.map((s) => (
               <label
                 key={s.id}
-                className="flex cursor-pointer items-start gap-2 rounded px-1.5 py-1 text-sm text-ink-700 hover:bg-ink-50"
+                className="flex cursor-pointer items-start gap-2 rounded px-1.5 py-1 text-sm text-text-primary hover:bg-surface-sunk"
               >
                 <input
                   type="checkbox"
-                  className="mt-0.5 h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500"
+                  className="mt-0.5 h-4 w-4 rounded border-border-strong text-brand-600 focus:ring-brand-600"
                   checked={selected.includes(s.id)}
                   onChange={() => toggle(s.id)}
                 />
@@ -213,7 +213,7 @@ function GuidedMatch() {
           </div>
 
           <label className="block">
-            <span className="mb-1.5 block text-sm font-medium text-ink-800">
+            <span className="mb-1.5 block text-sm font-medium text-text-primary">
               Anything else? (optional)
             </span>
             <Textarea
@@ -226,7 +226,7 @@ function GuidedMatch() {
 
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="mb-1.5 block text-sm font-medium text-ink-800">How long?</span>
+              <span className="mb-1.5 block text-sm font-medium text-text-primary">How long?</span>
               <Input
                 type="number"
                 min={0}
@@ -236,7 +236,7 @@ function GuidedMatch() {
               />
             </label>
             <label className="block">
-              <span className="mb-1.5 block text-sm font-medium text-ink-800">How bad?</span>
+              <span className="mb-1.5 block text-sm font-medium text-text-primary">How bad?</span>
               <Select value={severity} onChange={(e) => setSeverity(e.target.value)}>
                 <option value="">Not sure</option>
                 <option value="MILD">Mild</option>
@@ -267,7 +267,7 @@ function GuidedMatch() {
             ) : null}
 
             {result.fallback && result.fallbackReason ? (
-              <Alert tone="warning">{result.fallbackReason}</Alert>
+              <Alert tone="info">{result.fallbackReason}</Alert>
             ) : null}
 
             <Alert tone="info">

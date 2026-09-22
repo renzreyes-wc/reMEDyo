@@ -12,11 +12,11 @@ export function PrescriptionCard({
   prescription: MedicalRecordEntry['prescriptions'][number];
 }) {
   return (
-    <div className="rounded-lg border border-alert-200 bg-alert-50/60 p-4">
+    <div className="rounded-md border border-alert-200 bg-alert-50 p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-medium text-ink-900">{prescription.medication}</p>
-          <p className="mt-0.5 text-sm text-ink-700">
+          <p className="font-medium text-text-primary">{prescription.medication}</p>
+          <p className="mt-0.5 text-sm text-text-primary">
             {prescription.dosage} · {prescription.frequency} · {prescription.durationDays} days
           </p>
         </div>
@@ -24,7 +24,7 @@ export function PrescriptionCard({
       </div>
 
       {prescription.instructions ? (
-        <p className="mt-2 text-sm text-ink-600">{prescription.instructions}</p>
+        <p className="mt-2 text-sm text-text-muted">{prescription.instructions}</p>
       ) : null}
 
       <p className="mt-3 border-t border-alert-200 pt-2 text-xs text-alert-900">
@@ -41,10 +41,10 @@ export function RecordEntryCard({ entry }: { entry: MedicalRecordEntry }) {
 
   return (
     <Card className="p-5">
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-ink-100 pb-4">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border-subtle pb-4">
         <div>
-          <p className="font-semibold text-ink-900">Dr. {appointment.doctor.fullName}</p>
-          <p className="mt-0.5 text-sm text-ink-500">
+          <p className="font-semibold text-text-primary">Dr. {appointment.doctor.fullName}</p>
+          <p className="mt-0.5 text-sm text-text-muted">
             {formatRange(appointment.startsAt, appointment.endsAt)}
           </p>
         </div>
@@ -53,10 +53,10 @@ export function RecordEntryCard({ entry }: { entry: MedicalRecordEntry }) {
 
       <div className="mt-4 space-y-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink-500">
+          <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
             Reason for visit
           </p>
-          <p className="mt-1 text-sm text-ink-800">{appointment.reasonForVisit}</p>
+          <p className="mt-1 text-sm text-text-primary">{appointment.reasonForVisit}</p>
         </div>
 
         {note ? (
@@ -65,7 +65,7 @@ export function RecordEntryCard({ entry }: { entry: MedicalRecordEntry }) {
             <Section label="Diagnosis" value={note.diagnosis} />
             <Section label="Recommendations" value={note.recommendations} />
             {note.followUp ? <Section label="Follow-up" value={note.followUp} /> : null}
-            <p className="text-xs text-ink-400">
+            <p className="text-xs text-text-muted">
               Recorded by {note.authorName} on {formatDate(note.createdAt)}
               {note.updatedAt !== note.createdAt
                 ? ` · revised ${formatDate(note.updatedAt)}`
@@ -81,7 +81,7 @@ export function RecordEntryCard({ entry }: { entry: MedicalRecordEntry }) {
 
         {prescriptions.length > 0 ? (
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-500">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">
               Prescriptions ({prescriptions.length})
             </p>
             <div className="space-y-3">
@@ -99,8 +99,8 @@ export function RecordEntryCard({ entry }: { entry: MedicalRecordEntry }) {
 function Section({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-wide text-ink-500">{label}</p>
-      <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-ink-800">{value}</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">{label}</p>
+      <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-text-primary">{value}</p>
     </div>
   );
 }

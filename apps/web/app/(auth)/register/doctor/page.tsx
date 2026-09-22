@@ -112,15 +112,15 @@ function DoctorRegisterForm() {
         required
         hint="Choose every area you consult in. Patients filter and match on these."
       >
-        <div className="mt-1 grid max-h-52 gap-1.5 overflow-y-auto rounded-lg border border-ink-200 p-3 sm:grid-cols-2">
+        <div className="mt-1 grid max-h-52 gap-1.5 overflow-y-auto rounded-md border border-border-subtle p-3 sm:grid-cols-2">
           {SPECIALIZATIONS.map((spec) => (
             <label
               key={spec}
-              className="flex cursor-pointer items-center gap-2 rounded px-1.5 py-1 text-sm text-ink-700 hover:bg-ink-50"
+              className="flex cursor-pointer items-center gap-2 rounded px-1.5 py-1 text-sm text-text-primary hover:bg-surface-sunk"
             >
               <input
                 type="checkbox"
-                className="h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500"
+                className="h-4 w-4 rounded border-border-strong text-brand-600 focus:ring-brand-600"
                 checked={specializations.includes(spec)}
                 onChange={() => toggle(spec)}
               />

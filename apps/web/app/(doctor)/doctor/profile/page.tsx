@@ -88,7 +88,7 @@ export default function DoctorProfilePage() {
             You appear in the directory and patients can book you.
           </Alert>
         ) : profile.approvalState === 'PENDING' ? (
-          <Alert tone="warning" title="Awaiting review">
+          <Alert tone="info" title="Awaiting review">
             An administrator is reviewing your profile. Until it is approved you
             do not appear in the directory and cannot receive bookings.
           </Alert>
@@ -106,7 +106,7 @@ export default function DoctorProfilePage() {
           action={
             <span className="flex items-center gap-2">
               <Avatar initials={profile.initials} />
-              <Badge tone={profile.approvalState === 'APPROVED' ? 'success' : 'warning'}>
+              <Badge tone={profile.approvalState === 'APPROVED' ? 'success' : 'info'}>
                 {profile.approvalState}
               </Badge>
             </span>
@@ -136,15 +136,15 @@ export default function DoctorProfilePage() {
             required
             hint="Patients filter and match on these, so keep them accurate."
           >
-            <div className="mt-1 grid max-h-48 gap-1.5 overflow-y-auto rounded-lg border border-ink-200 p-3 sm:grid-cols-3">
+            <div className="mt-1 grid max-h-48 gap-1.5 overflow-y-auto rounded-md border border-border-subtle p-3 sm:grid-cols-3">
               {SPECIALIZATIONS.map((s) => (
                 <label
                   key={s}
-                  className="flex cursor-pointer items-center gap-2 rounded px-1.5 py-1 text-sm text-ink-700 hover:bg-ink-50"
+                  className="flex cursor-pointer items-center gap-2 rounded px-1.5 py-1 text-sm text-text-primary hover:bg-surface-sunk"
                 >
                   <input
                     type="checkbox"
-                    className="h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500"
+                    className="h-4 w-4 rounded border-border-strong text-brand-600 focus:ring-brand-600"
                     checked={specializations.includes(s)}
                     onChange={() =>
                       setSpecializations((cur) =>

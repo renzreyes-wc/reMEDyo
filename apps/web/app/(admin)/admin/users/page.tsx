@@ -88,7 +88,7 @@ export default function AdminUsersPage() {
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="border-b border-ink-100 bg-ink-50/60 text-left">
+              <thead className="border-b border-border-subtle bg-surface-sunk text-left">
                 <tr>
                   <Th>Account</Th>
                   <Th>Role</Th>
@@ -97,17 +97,17 @@ export default function AdminUsersPage() {
                   <Th>Actions</Th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink-100">
+              <tbody className="divide-y divide-border-subtle">
                 {users.map((u) => (
                   <tr key={u.id}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
-                        <Avatar initials={u.initials} size="sm" tone="ink" />
+                        <Avatar initials={u.initials} size="sm" tone="support" />
                         <div className="min-w-0">
-                          <p className="truncate font-medium text-ink-900">
+                          <p className="truncate font-medium text-text-primary">
                             {u.fullName ?? '—'}
                           </p>
-                          <p className="truncate text-xs text-ink-500">{u.email}</p>
+                          <p className="truncate text-xs text-text-muted">{u.email}</p>
                         </div>
                       </div>
                     </td>
@@ -115,7 +115,7 @@ export default function AdminUsersPage() {
                       <Badge>{u.role}</Badge>
                       {u.approvalState ? (
                         <Badge
-                          tone={u.approvalState === 'APPROVED' ? 'success' : 'warning'}
+                          tone={u.approvalState === 'APPROVED' ? 'success' : 'info'}
                           className="ml-1"
                         >
                           {u.approvalState}
@@ -135,10 +135,10 @@ export default function AdminUsersPage() {
                         {u.status}
                       </Badge>
                       {u.statusReason ? (
-                        <p className="mt-1 max-w-48 text-xs text-ink-500">{u.statusReason}</p>
+                        <p className="mt-1 max-w-48 text-xs text-text-muted">{u.statusReason}</p>
                       ) : null}
                     </td>
-                    <td className="px-4 py-3 text-ink-600">{formatDate(u.createdAt)}</td>
+                    <td className="px-4 py-3 text-text-muted">{formatDate(u.createdAt)}</td>
                     <td className="px-4 py-3">
                       {acting?.id === u.id ? (
                         <div className="w-64 space-y-2">
@@ -202,7 +202,7 @@ export default function AdminUsersPage() {
 
 function Th({ children }: { children: React.ReactNode }) {
   return (
-    <th className="px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-ink-500">
+    <th className="px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-text-muted">
       {children}
     </th>
   );

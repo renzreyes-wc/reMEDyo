@@ -47,29 +47,29 @@ export function AppShell({
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
-      <header className="sticky top-0 z-40 border-b border-ink-200 bg-white">
+      <header className="sticky top-0 z-40 border-b border-border-subtle bg-surface">
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
           <div className="flex items-center gap-3">
             <Link href={nav[0]?.href ?? '/'} aria-label="reMEDyo home">
               <Logo />
             </Link>
-            <span className="hidden rounded-full bg-ink-100 px-2.5 py-0.5 text-xs font-medium text-ink-600 sm:inline">
+            <span className="hidden rounded-full bg-surface-sunk px-2.5 py-0.5 text-xs font-medium text-text-muted sm:inline">
               {roleLabel}
             </span>
           </div>
 
           <div className="flex items-center gap-2">
             <NotificationBell />
-            <div className="flex items-center gap-2 border-l border-ink-200 pl-2">
+            <div className="flex items-center gap-2 border-l border-border-subtle pl-2">
               <Avatar initials={user.initials} size="sm" />
               <div className="hidden leading-tight sm:block">
-                <p className="text-sm font-medium text-ink-900">
+                <p className="text-sm font-medium text-text-primary">
                   {user.displayName ?? user.email}
                 </p>
                 <button
                   type="button"
                   onClick={() => void signOut()}
-                  className="text-xs text-ink-500 hover:text-brand-700"
+                  className="text-xs text-text-muted hover:text-brand-900"
                 >
                   Sign out
                 </button>
@@ -90,8 +90,8 @@ export function AppShell({
                     href={item.href}
                     className={`inline-block whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition-colors ${
                       active
-                        ? 'border-brand-600 text-brand-700'
-                        : 'border-transparent text-ink-500 hover:border-ink-300 hover:text-ink-800'
+                        ? 'border-brand-600 text-brand-900'
+                        : 'border-transparent text-text-muted hover:border-border-strong hover:text-text-primary'
                     }`}
                   >
                     {item.label}
@@ -105,9 +105,9 @@ export function AppShell({
 
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6">{children}</main>
 
-      <footer className="border-t border-ink-200 bg-white">
+      <footer className="border-t border-border-subtle bg-surface">
         <div className="mx-auto w-full max-w-7xl px-4 py-4 sm:px-6">
-          <p className="text-xs text-ink-500">
+          <p className="text-xs text-text-muted">
             <strong className="font-semibold text-alert-900">Fictional prototype.</strong>{' '}
             All doctors, records and prescriptions here are invented. Not for real
             medical use. <Link href="/privacy" className="underline">Privacy</Link> ·{' '}

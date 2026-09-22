@@ -142,16 +142,16 @@ export default function DoctorSchedulePage() {
 
               <div className="mt-6 space-y-3">
                 {byDay.map(({ name, day, windows: dayWindows }) => (
-                  <div key={day} className="flex items-start gap-4 border-b border-ink-100 pb-3 last:border-0">
-                    <p className="w-24 shrink-0 text-sm font-medium text-ink-800">{name}</p>
+                  <div key={day} className="flex items-start gap-4 border-b border-border-subtle pb-3 last:border-0">
+                    <p className="w-24 shrink-0 text-sm font-medium text-text-primary">{name}</p>
                     {dayWindows.length === 0 ? (
-                      <p className="text-sm text-ink-400">Not available</p>
+                      <p className="text-sm text-text-muted">Not available</p>
                     ) : (
                       <div className="flex flex-wrap gap-2">
                         {dayWindows.map((w) => (
                           <span
                             key={w.id}
-                            className="inline-flex items-center gap-2 rounded-lg bg-brand-50 px-2.5 py-1 text-sm text-brand-800"
+                            className="inline-flex items-center gap-2 rounded-md bg-brand-50 px-2.5 py-1 text-sm text-brand-900"
                           >
                             {minutesToClock(w.startMinute)} – {minutesToClock(w.endMinute)}
                             <button
@@ -197,22 +197,22 @@ export default function DoctorSchedulePage() {
               </form>
 
               {exceptions.length === 0 ? (
-                <p className="mt-4 text-sm text-ink-400">No blocked dates.</p>
+                <p className="mt-4 text-sm text-text-muted">No blocked dates.</p>
               ) : (
                 <ul className="mt-4 space-y-2">
                   {exceptions.map((e) => (
                     <li
                       key={e.id}
-                      className="flex items-center justify-between rounded-lg bg-ink-50 px-3 py-2"
+                      className="flex items-center justify-between rounded-md bg-surface-sunk px-3 py-2"
                     >
-                      <span className="text-sm text-ink-800">
+                      <span className="text-sm text-text-primary">
                         {formatDay(`${e.date}T00:00:00`)}
-                        {e.reason ? <span className="text-ink-500"> — {e.reason}</span> : null}
+                        {e.reason ? <span className="text-text-muted"> — {e.reason}</span> : null}
                       </span>
                       <button
                         type="button"
                         onClick={() => void removeException(e.id)}
-                        className="text-xs text-ink-400 hover:text-danger-700"
+                        className="text-xs text-text-muted hover:text-danger-700"
                       >
                         Remove
                       </button>
@@ -238,7 +238,7 @@ export default function DoctorSchedulePage() {
             ) : (
               <ul className="space-y-1.5">
                 {slots.slice(0, 40).map((s) => (
-                  <li key={s.startsAt} className="rounded-lg bg-ink-50 px-3 py-1.5 text-sm text-ink-700">
+                  <li key={s.startsAt} className="rounded-md bg-surface-sunk px-3 py-1.5 text-sm text-text-primary">
                     {formatDay(s.startsAt)} · {formatTime(s.startsAt)}
                   </li>
                 ))}

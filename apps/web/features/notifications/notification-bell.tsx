@@ -68,7 +68,7 @@ export function NotificationBell() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-ink-600 hover:bg-ink-100 hover:text-ink-900"
+        className="relative inline-flex h-9 w-9 items-center justify-center rounded-md text-text-muted hover:bg-surface-sunk hover:text-text-primary"
         aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`}
       >
         <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -87,9 +87,9 @@ export function NotificationBell() {
       </button>
 
       {open ? (
-        <div className="absolute right-0 z-50 mt-2 w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[var(--radius-card)] border border-ink-200 bg-white shadow-lg">
-          <div className="flex items-center justify-between border-b border-ink-100 px-4 py-3">
-            <p className="text-sm font-semibold text-ink-900">Notifications</p>
+        <div className="absolute right-0 z-50 mt-2 w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-card border border-border-subtle bg-surface shadow-floating">
+          <div className="flex items-center justify-between border-b border-border-subtle px-4 py-3">
+            <p className="text-sm font-semibold text-text-primary">Notifications</p>
             {unread > 0 ? (
               <Button variant="ghost" size="sm" onClick={markAll}>
                 Mark all read
@@ -99,8 +99,8 @@ export function NotificationBell() {
 
           <div className="max-h-96 overflow-y-auto">
             {reminders.length > 0 ? (
-              <div className="border-b border-ink-100 bg-brand-50/60 px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-brand-800">
+              <div className="border-b border-border-subtle bg-brand-50 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand-900">
                   Starting soon
                 </p>
                 {reminders.map((r) => (
@@ -108,11 +108,11 @@ export function NotificationBell() {
                     key={r.id}
                     href={r.link ?? '#'}
                     onClick={() => setOpen(false)}
-                    className="mt-2 block rounded-lg bg-white p-3 hover:bg-brand-50"
+                    className="mt-2 block rounded-md bg-surface p-3 hover:bg-brand-50"
                   >
-                    <p className="text-sm font-medium text-ink-900">{r.title}</p>
-                    <p className="mt-0.5 text-sm text-ink-600">{r.body}</p>
-                    <span className="mt-1 inline-block text-xs font-medium text-brand-700">
+                    <p className="text-sm font-medium text-text-primary">{r.title}</p>
+                    <p className="mt-0.5 text-sm text-text-muted">{r.body}</p>
+                    <span className="mt-1 inline-block text-xs font-medium text-brand-900">
                       Join the consultation →
                     </span>
                   </Link>
@@ -121,27 +121,27 @@ export function NotificationBell() {
             ) : null}
 
             {items.length === 0 && reminders.length === 0 ? (
-              <p className="px-4 py-8 text-center text-sm text-ink-500">
+              <p className="px-4 py-8 text-center text-sm text-text-muted">
                 Nothing yet. Bookings and record updates will appear here.
               </p>
             ) : (
-              <ul className="divide-y divide-ink-100">
+              <ul className="divide-y divide-border-subtle">
                 {items.map((n) => (
-                  <li key={n.id} className={n.readAt ? '' : 'bg-brand-50/40'}>
+                  <li key={n.id} className={n.readAt ? '' : 'bg-brand-50'}>
                     <Link
                       href={n.link ?? '#'}
                       onClick={() => {
                         if (!n.readAt) void markOne(n.id);
                         setOpen(false);
                       }}
-                      className="block px-4 py-3 hover:bg-ink-50"
+                      className="block px-4 py-3 hover:bg-surface-sunk"
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm font-medium text-ink-900">{n.title}</p>
+                        <p className="text-sm font-medium text-text-primary">{n.title}</p>
                         {!n.readAt ? <Badge tone="brand">New</Badge> : null}
                       </div>
-                      <p className="mt-0.5 text-sm text-ink-600">{n.body}</p>
-                      <p className="mt-1 text-xs text-ink-400">{relativeTime(n.createdAt)}</p>
+                      <p className="mt-0.5 text-sm text-text-muted">{n.body}</p>
+                      <p className="mt-1 text-xs text-text-muted">{relativeTime(n.createdAt)}</p>
                     </Link>
                   </li>
                 ))}

@@ -46,7 +46,7 @@ function AppointmentsView() {
       ) : null}
 
       <section className="mb-10">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-500">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text-muted">
           Upcoming ({upcoming.length})
         </h2>
         {upcoming.length === 0 ? (
@@ -65,7 +65,7 @@ function AppointmentsView() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-500">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text-muted">
           Past ({past.length})
         </h2>
         {past.length === 0 ? (

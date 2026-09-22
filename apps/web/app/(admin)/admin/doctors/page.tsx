@@ -73,40 +73,40 @@ export default function DoctorReviewPage() {
                 <div className="flex items-start gap-3">
                   <Avatar initials={d.initials} size="lg" />
                   <div>
-                    <h2 className="text-lg font-semibold text-ink-900">Dr. {d.fullName}</h2>
+                    <h2 className="text-lg font-semibold text-text-primary">Dr. {d.fullName}</h2>
                     <p className="mt-1 flex flex-wrap gap-1">
                       {d.specializations.map((s) => (
-                        <Badge key={s} tone="brand">{SPECIALIZATION_LABELS[s]}</Badge>
+                        <Badge key={s} tone="info">{SPECIALIZATION_LABELS[s]}</Badge>
                       ))}
                     </p>
-                    <dl className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm text-ink-600">
+                    <dl className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm text-text-muted">
                       <div className="flex gap-1.5">
-                        <dt className="text-ink-500">Licence</dt>
-                        <dd className="font-medium text-ink-800">{d.licenseNumber || '—'}</dd>
+                        <dt className="text-text-muted">Licence</dt>
+                        <dd className="font-medium text-text-primary">{d.licenseNumber || '—'}</dd>
                       </div>
                       <div className="flex gap-1.5">
-                        <dt className="text-ink-500">Experience</dt>
-                        <dd className="font-medium text-ink-800">{d.yearsExperience} yrs</dd>
+                        <dt className="text-text-muted">Experience</dt>
+                        <dd className="font-medium text-text-primary">{d.yearsExperience} yrs</dd>
                       </div>
                       <div className="flex gap-1.5">
-                        <dt className="text-ink-500">Fee</dt>
-                        <dd className="font-medium text-ink-800">
+                        <dt className="text-text-muted">Fee</dt>
+                        <dd className="font-medium text-text-primary">
                           {formatPeso(d.consultationFee)}
                         </dd>
                       </div>
                     </dl>
                   </div>
                 </div>
-                <Badge tone="warning">Pending</Badge>
+                <Badge tone="info">Pending</Badge>
               </div>
 
-              <p className="mt-4 whitespace-pre-line rounded-lg bg-ink-50 p-4 text-sm leading-relaxed text-ink-700">
+              <p className="mt-4 whitespace-pre-line rounded-md bg-surface-sunk p-4 text-sm leading-relaxed text-text-primary">
                 {d.bio || 'No biography provided.'}
               </p>
 
               {rejecting === d.id ? (
-                <div className="mt-4 space-y-3 rounded-lg border border-danger-200 bg-danger-50 p-4">
-                  <p className="text-sm font-medium text-ink-900">
+                <div className="mt-4 space-y-3 rounded-md border border-danger-200 bg-danger-50 p-4">
+                  <p className="text-sm font-medium text-text-primary">
                     Why is this profile being rejected? The doctor will see this.
                   </p>
                   <Textarea
@@ -134,14 +134,14 @@ export default function DoctorReviewPage() {
                   </div>
                 </div>
               ) : editing === d.id ? (
-                <div className="mt-4 space-y-3 rounded-lg border border-ink-200 bg-ink-50 p-4">
-                  <p className="text-sm font-medium text-ink-900">Correct the specializations</p>
-                  <div className="grid max-h-40 gap-1.5 overflow-y-auto rounded-lg border border-ink-200 bg-white p-3 sm:grid-cols-3">
+                <div className="mt-4 space-y-3 rounded-md border border-border-subtle bg-surface-sunk p-4">
+                  <p className="text-sm font-medium text-text-primary">Correct the specializations</p>
+                  <div className="grid max-h-40 gap-1.5 overflow-y-auto rounded-md border border-border-subtle bg-surface p-3 sm:grid-cols-3">
                     {SPECIALIZATIONS.map((s) => (
-                      <label key={s} className="flex items-center gap-2 text-sm text-ink-700">
+                      <label key={s} className="flex items-center gap-2 text-sm text-text-primary">
                         <input
                           type="checkbox"
-                          className="h-4 w-4 rounded border-ink-300 text-brand-600"
+                          className="h-4 w-4 rounded border-border-strong text-brand-600"
                           checked={specs.includes(s)}
                           onChange={() =>
                             setSpecs((cur) =>
@@ -174,7 +174,7 @@ export default function DoctorReviewPage() {
                   </div>
                 </div>
               ) : (
-                <div className="mt-4 flex flex-wrap gap-2 border-t border-ink-100 pt-4">
+                <div className="mt-4 flex flex-wrap gap-2 border-t border-border-subtle pt-4">
                   <Button
                     size="sm"
                     onClick={() =>

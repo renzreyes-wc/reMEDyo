@@ -77,11 +77,11 @@ export default function AdminAppointmentsPage() {
             <option value="COMPLETED">Completed</option>
             <option value="CANCELLED">Cancelled</option>
           </Select>
-          <label className="flex items-center gap-2 text-sm text-ink-600">
+          <label className="flex items-center gap-2 text-sm text-text-muted">
             From
             <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
           </label>
-          <label className="flex items-center gap-2 text-sm text-ink-600">
+          <label className="flex items-center gap-2 text-sm text-text-muted">
             To
             <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
           </label>
@@ -94,7 +94,7 @@ export default function AdminAppointmentsPage() {
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="border-b border-ink-100 bg-ink-50/60 text-left">
+              <thead className="border-b border-border-subtle bg-surface-sunk text-left">
                 <tr>
                   <Th>Patient</Th>
                   <Th>Doctor</Th>
@@ -104,19 +104,19 @@ export default function AdminAppointmentsPage() {
                   <Th>Actions</Th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink-100">
+              <tbody className="divide-y divide-border-subtle">
                 {appointments.map((a) => (
                   <tr key={a.id}>
-                    <td className="px-4 py-3 font-medium text-ink-900">{a.patient.fullName}</td>
-                    <td className="px-4 py-3 text-ink-700">Dr. {a.doctor.fullName}</td>
-                    <td className="px-4 py-3 text-ink-600">
+                    <td className="px-4 py-3 font-medium text-text-primary">{a.patient.fullName}</td>
+                    <td className="px-4 py-3 text-text-primary">Dr. {a.doctor.fullName}</td>
+                    <td className="px-4 py-3 text-text-muted">
                       {formatRange(a.startsAt, a.endsAt)}
                     </td>
                     <td className="px-4 py-3"><AppointmentStateBadge appointment={a} /></td>
                     <td className="px-4 py-3"><Badge>{a.sessionState}</Badge></td>
                     <td className="px-4 py-3">
                       {a.state !== 'SCHEDULED' ? (
-                        <span className="text-xs text-ink-400">—</span>
+                        <span className="text-xs text-text-muted">—</span>
                       ) : cancelling === a.id ? (
                         <div className="w-56 space-y-2">
                           <Textarea
@@ -157,7 +157,7 @@ export default function AdminAppointmentsPage() {
 
 function Th({ children }: { children: React.ReactNode }) {
   return (
-    <th className="px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-ink-500">
+    <th className="px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-text-muted">
       {children}
     </th>
   );

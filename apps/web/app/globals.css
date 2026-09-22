@@ -1,37 +1,56 @@
 @import "tailwindcss";
 
 /*
- * reMEDyo design tokens.
+ * reMEDyo design tokens — the "Soft Care" system.
  *
- * A healthcare product has to read as calm and trustworthy before it reads as
- * clever. The palette is a deep teal (clinical, not corporate blue) on warm
- * neutrals, with a single amber accent reserved for prototype and safety
- * notices so those never blend into ordinary UI.
+ * Two tiers on purpose. The PALETTE tier below holds raw ramps; the SEMANTIC
+ * tier names roles. Components only ever touch the semantic tier, which is
+ * what stops markup inventing colours with opacity modifiers when a role has
+ * no name — and is the whole of the dark-mode preparation, since a later
+ * change redefines roles without touching the ramps.
+ *
+ * Colour carries meaning here, so the hues are not interchangeable:
+ *   alert (amber)   emergency guidance, safety notices, the prototype
+ *                   disclaimer, the non-dispensable prescription label.
+ *                   Nothing else — the product depends on this one.
+ *   support (lilac) informational chips, specialty tags, match explanations.
+ *                   Exists so ordinary badges stop borrowing amber.
+ *   brand (teal)    primary actions, active navigation, brand moments.
+ *   peach           hero and empty-state artwork ONLY. Never a badge, so a
+ *                   decorative panel can never read as a warning at a glance.
+ *   danger (red)    destructive actions and errors.
+ *
+ * Every text/background pair below meets WCAG AA (4.5:1 body, 3:1 at 24px+).
+ * scripts/check-contrast.mjs asserts it; run it before changing a value.
  */
 @theme {
-  --color-brand-50: #eefbf7;
-  --color-brand-100: #d5f5eb;
-  --color-brand-200: #aeead8;
-  --color-brand-300: #78d8bf;
-  --color-brand-400: #43bfa1;
-  --color-brand-500: #1fa587;
-  --color-brand-600: #12856e;
-  --color-brand-700: #106a5a;
-  --color-brand-800: #105549;
-  --color-brand-900: #0f473e;
-  --color-brand-950: #032822;
+  /* ---- Palette tier -------------------------------------------------- */
 
-  --color-ink-50: #f7f8f8;
-  --color-ink-100: #eceef0;
-  --color-ink-200: #d5d9dd;
-  --color-ink-300: #b1b9c1;
-  --color-ink-400: #86929e;
-  --color-ink-500: #6a7682;
-  --color-ink-600: #5a636e;
-  --color-ink-700: #4d545d;
-  --color-ink-800: #43484f;
-  --color-ink-900: #3b3f45;
-  --color-ink-950: #26282d;
+  /* Brand teal. 600 is #0d7c62 rather than a brighter #0e8368: that value
+     measured 4.43:1 on the canvas and 4.24:1 on its own 50 tint, failing the
+     body-text floor on the two grounds it is most used on. */
+  --color-brand-50: #e6f7f1;
+  --color-brand-100: #d8f0e7;
+  --color-brand-300: #5fbe9e;
+  /* 400 exists for control boundaries: a form input's border must reach 3:1
+     against its surface (WCAG 1.4.11) or the control is not distinguishable.
+     brand-300 measures 2.25:1 and cannot do that job. */
+  --color-brand-400: #3a9e7c;
+  --color-brand-600: #0d7c62;
+  --color-brand-900: #0c4a3e;
+
+  /* Support lilac. 500 and brand-300 are NON-TEXT tokens (2.66:1 and 2.12:1
+     on canvas) — fills, borders and icons only. */
+  --color-support-100: #f0eefb;
+  --color-support-300: #d9d4f6;
+  --color-support-500: #9a90e0;
+  --color-support-600: #6b5fc4;
+  --color-support-700: #4a3f9e;
+
+  /* Decorative only. Carries PRIMARY text if it must (10.98:1); muted text on
+     peach measures 4.34:1 and fails, so don't. */
+  --color-peach: #ffe2c9;
+  --color-peach-deep: #ffd0a8;
 
   --color-alert-50: #fff8ed;
   --color-alert-100: #ffefd4;
@@ -46,13 +65,47 @@
   --color-danger-600: #dc2626;
   --color-danger-700: #b91c1c;
 
+  /* ---- Semantic tier — what components actually use ------------------ */
+
+  --color-canvas: #f2faf7;
   --color-surface: #ffffff;
-  --color-canvas: #f7f9f9;
+  --color-surface-sunk: #f2faf7;
+  --color-surface-raised: #ffffff;
 
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+  --color-text-primary: #17332c;
+  --color-text-muted: #55706a;
+  --color-text-on-brand: #ffffff;
+
+  --color-border-subtle: #d8f0e7;
+  --color-border-strong: #3a9e7c;
+  /* The focus ring is a role, not a tint of another colour: naming it keeps
+     the "no ad-hoc opacity" rule true without losing the soft halo. */
+  --color-focus-ring: #b9e4d5;
+
+  /* ---- Type ----------------------------------------------------------- */
+
+  /* Both faces are loaded by next/font in app/layout.tsx, which downloads
+     them at build time and serves them from this origin — no runtime font
+     request. The variables below are the ones it emits. */
+  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
 
-  --radius-card: 0.875rem;
+  /* ---- Radius ---------------------------------------------------------- */
+
+  --radius-sm: 0.75rem;
+  --radius-md: 1.125rem;
+  --radius-lg: 1.5rem;
+  --radius-card: 1.5rem;
+
+  /* ---- Elevation — exactly three steps -------------------------------- */
+
+  /* flat is a border, not a shadow; it lives on components as
+     border-border-subtle. These two are the only shadows in the product. */
+  --shadow-raised: 0 1px 2px rgba(12, 74, 62, 0.04),
+    0 4px 12px -4px rgba(12, 74, 62, 0.06);
+  --shadow-floating: 0 4px 8px -2px rgba(12, 74, 62, 0.06),
+    0 16px 32px -8px rgba(12, 74, 62, 0.14);
 }
 
 html {
@@ -61,9 +114,19 @@ html {
 
 body {
   background-color: var(--color-canvas);
-  color: var(--color-ink-900);
+  color: var(--color-text-primary);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+}
+
+/* The display face is scoped to h1-h3 only. Fraunces is a variable serif with
+   an optical-size axis; at body sizes it costs readability, so everything
+   below h3 stays on Nunito Sans. */
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
 }
 
 /* Respect users who ask for less motion; several panels poll and re-render. */

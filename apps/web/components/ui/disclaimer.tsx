@@ -8,7 +8,7 @@
 export function PrototypeDisclaimer({ compact = false }: { compact?: boolean }) {
   if (compact) {
     return (
-      <p className="rounded-lg border border-alert-200 bg-alert-50 px-3 py-2 text-xs text-alert-900">
+      <p className="rounded-md border border-alert-200 bg-alert-50 px-3.5 py-2.5 text-xs text-alert-900">
         <strong className="font-semibold">Fictional prototype.</strong> Doctors,
         records and prescriptions here are invented. Not for real medical use.
       </p>
@@ -16,11 +16,11 @@ export function PrototypeDisclaimer({ compact = false }: { compact?: boolean }) 
   }
 
   return (
-    <div className="rounded-[var(--radius-card)] border-2 border-alert-200 bg-alert-50 p-5">
+    <div className="rounded-card border-2 border-alert-200 bg-alert-50 p-6">
       <h3 className="text-base font-semibold text-alert-900">
         This is a fictional prototype
       </h3>
-      <div className="mt-2 space-y-2 text-sm leading-relaxed text-alert-900/90">
+      <div className="mt-2 space-y-2 text-sm leading-relaxed text-alert-900">
         <p>
           reMEDyo was built as a demonstration exercise. Every doctor profile,
           credential, appointment, consultation note and prescription in this

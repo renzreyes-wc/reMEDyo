@@ -55,7 +55,7 @@ export default function PatientDashboard() {
 
       {profileIncomplete ? (
         <div className="mb-6">
-          <Alert tone="warning" title="Finish your profile before booking">
+          <Alert tone="info" title="Finish your profile before booking">
             We need your name and date of birth so your doctor knows who they are
             seeing.{' '}
             <ButtonLink href="/patient/profile" size="sm" className="ml-1">
@@ -67,7 +67,7 @@ export default function PatientDashboard() {
 
       <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <section>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-500">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text-muted">
             Next consultations
           </h2>
           {upcoming.length === 0 ? (
@@ -117,10 +117,10 @@ export default function PatientDashboard() {
             <div className="p-5">
               {latestRecord?.note ? (
                 <>
-                  <p className="text-sm font-medium text-ink-900">
+                  <p className="text-sm font-medium text-text-primary">
                     Dr. {latestRecord.appointment.doctor.fullName}
                   </p>
-                  <p className="mt-1 line-clamp-3 text-sm text-ink-600">
+                  <p className="mt-1 line-clamp-3 text-sm text-text-muted">
                     {latestRecord.note.diagnosis}
                   </p>
                   <ButtonLink href="/patient/records" variant="secondary" size="sm" className="mt-3">
@@ -128,7 +128,7 @@ export default function PatientDashboard() {
                   </ButtonLink>
                 </>
               ) : (
-                <p className="text-sm text-ink-500">
+                <p className="text-sm text-text-muted">
                   No consultation notes yet. They appear here after your first completed consultation.
                 </p>
               )}
@@ -143,8 +143,8 @@ export default function PatientDashboard() {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-4">
-      <dt className="text-ink-500">{label}</dt>
-      <dd className="text-right font-medium text-ink-900">{value}</dd>
+      <dt className="text-text-muted">{label}</dt>
+      <dd className="text-right font-medium text-text-primary">{value}</dd>
     </div>
   );
 }

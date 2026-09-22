@@ -11,7 +11,7 @@ import { formatRange, relativeTime } from '@/lib/format';
 export function AppointmentStateBadge({ appointment }: { appointment: Appointment }) {
   if (appointment.state === 'CANCELLED') return <Badge tone="danger">Cancelled</Badge>;
   if (appointment.state === 'COMPLETED') return <Badge tone="success">Completed</Badge>;
-  if (appointment.missed) return <Badge tone="warning">Missed</Badge>;
+  if (appointment.missed) return <Badge tone="info">Missed</Badge>;
   if (appointment.sessionState === 'IN_PROGRESS') return <Badge tone="brand">In progress</Badge>;
   if (appointment.sessionState === 'JOINED') return <Badge tone="brand">Waiting</Badge>;
   return <Badge tone="info">Scheduled</Badge>;
@@ -75,11 +75,11 @@ export function AppointmentCard({
         <div className="flex items-start gap-3">
           <Avatar initials={counterpart.initials} />
           <div>
-            <p className="font-medium text-ink-900">{counterpart.name}</p>
+            <p className="font-medium text-text-primary">{counterpart.name}</p>
             {viewer === 'PATIENT' ? (
               <p className="mt-0.5 flex flex-wrap gap-1">
                 {appointment.doctor.specializations.map((s) => (
-                  <Badge key={s}>{SPECIALIZATION_LABELS[s]}</Badge>
+                  <Badge key={s} tone="info">{SPECIALIZATION_LABELS[s]}</Badge>
                 ))}
               </p>
             ) : null}
@@ -90,22 +90,22 @@ export function AppointmentCard({
 
       <dl className="mt-4 space-y-1.5 text-sm">
         <div className="flex gap-2">
-          <dt className="w-20 shrink-0 text-ink-500">When</dt>
-          <dd className="text-ink-900">
+          <dt className="w-20 shrink-0 text-text-muted">When</dt>
+          <dd className="text-text-primary">
             {formatRange(appointment.startsAt, appointment.endsAt)}
             {isActive ? (
-              <span className="ml-2 text-ink-500">({relativeTime(appointment.startsAt)})</span>
+              <span className="ml-2 text-text-muted">({relativeTime(appointment.startsAt)})</span>
             ) : null}
           </dd>
         </div>
         <div className="flex gap-2">
-          <dt className="w-20 shrink-0 text-ink-500">Reason</dt>
-          <dd className="text-ink-700">{appointment.reasonForVisit}</dd>
+          <dt className="w-20 shrink-0 text-text-muted">Reason</dt>
+          <dd className="text-text-primary">{appointment.reasonForVisit}</dd>
         </div>
         {appointment.cancellationReason ? (
           <div className="flex gap-2">
-            <dt className="w-20 shrink-0 text-ink-500">Cancelled</dt>
-            <dd className="text-ink-700">
+            <dt className="w-20 shrink-0 text-text-muted">Cancelled</dt>
+            <dd className="text-text-primary">
               by {appointment.cancelledBy?.toLowerCase()} — {appointment.cancellationReason}
             </dd>
           </div>
@@ -115,8 +115,8 @@ export function AppointmentCard({
       {error ? <div className="mt-3"><Alert tone="danger">{error}</Alert></div> : null}
 
       {action === 'cancel' ? (
-        <div className="mt-4 space-y-3 rounded-lg border border-ink-200 bg-ink-50 p-4">
-          <p className="text-sm font-medium text-ink-900">Cancel this consultation?</p>
+        <div className="mt-4 space-y-3 rounded-md border border-border-subtle bg-surface-sunk p-4">
+          <p className="text-sm font-medium text-text-primary">Cancel this consultation?</p>
           <Textarea
             rows={2}
             value={reason}
@@ -146,10 +146,10 @@ export function AppointmentCard({
       ) : null}
 
       {action === 'reschedule' ? (
-        <div className="mt-4 space-y-3 rounded-lg border border-ink-200 bg-ink-50 p-4">
-          <p className="text-sm font-medium text-ink-900">Choose a new time</p>
+        <div className="mt-4 space-y-3 rounded-md border border-border-subtle bg-surface-sunk p-4">
+          <p className="text-sm font-medium text-text-primary">Choose a new time</p>
           {slots === null ? (
-            <p className="text-sm text-ink-500">Loading available times…</p>
+            <p className="text-sm text-text-muted">Loading available times…</p>
           ) : (
             <SlotPicker slots={slots} value={newSlot} onChange={setNewSlot} />
           )}
@@ -175,7 +175,7 @@ export function AppointmentCard({
       ) : null}
 
       {action === 'none' ? (
-        <div className="mt-4 flex flex-wrap gap-2 border-t border-ink-100 pt-4">
+        <div className="mt-4 flex flex-wrap gap-2 border-t border-border-subtle pt-4">
           {canJoin ? (
             <ButtonLink href={`/consultation/${appointment.id}`} size="sm">
               Join consultation

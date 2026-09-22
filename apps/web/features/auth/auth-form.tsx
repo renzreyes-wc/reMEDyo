@@ -70,8 +70,8 @@ export function AuthFormShell({
 
   return (
     <Card className="p-6 sm:p-8">
-      <h1 className="text-2xl font-semibold tracking-tight text-ink-900">{title}</h1>
-      <p className="mt-1.5 text-sm text-ink-500">{description}</p>
+      <h1 className="text-2xl font-semibold tracking-tight text-text-primary">{title}</h1>
+      <p className="mt-1.5 text-sm text-text-muted">{description}</p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
         {errors.length > 0 ? (
@@ -95,7 +95,7 @@ export function AuthFormShell({
         </Button>
       </form>
 
-      <div className="mt-6 border-t border-ink-100 pt-4 text-sm text-ink-500">
+      <div className="mt-6 border-t border-border-subtle pt-4 text-sm text-text-muted">
         {footer}
       </div>
     </Card>
@@ -106,7 +106,7 @@ export function AuthFooterLink({ href, prompt, label }: { href: string; prompt: 
   return (
     <p>
       {prompt}{' '}
-      <Link href={href} className="font-medium text-brand-700 underline underline-offset-4">
+      <Link href={href} className="font-medium text-brand-900 underline underline-offset-4">
         {label}
       </Link>
     </p>
