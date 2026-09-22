@@ -38,7 +38,7 @@ export default function DoctorAppointmentsPage() {
 
       {awaitingRecord.length > 0 ? (
         <section className="mb-10">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-alert-700">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-support-700">
             Needs a written record ({awaitingRecord.length})
           </h2>
           <div className="grid gap-4 lg:grid-cols-2">
@@ -50,7 +50,7 @@ export default function DoctorAppointmentsPage() {
       ) : null}
 
       <section className="mb-10">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-500">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text-muted">
           Upcoming ({upcoming.length})
         </h2>
         {upcoming.length === 0 ? (
@@ -68,7 +68,7 @@ export default function DoctorAppointmentsPage() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-500">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text-muted">
           Past ({done.length})
         </h2>
         {done.length === 0 ? (

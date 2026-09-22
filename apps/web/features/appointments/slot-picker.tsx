@@ -44,7 +44,7 @@ export function SlotPicker({
     <div className="space-y-4">
       {byDay.slice(0, expanded).map(([day, daySlots]) => (
         <div key={day}>
-          <p className="mb-2 text-sm font-medium text-ink-800">
+          <p className="mb-2 text-sm font-medium text-text-primary">
             {formatDay(daySlots[0].startsAt)}
           </p>
           <div className="flex flex-wrap gap-2">
@@ -55,10 +55,10 @@ export function SlotPicker({
                   key={slot.startsAt}
                   type="button"
                   onClick={() => onChange(slot.startsAt)}
-                  className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+                  className={`rounded-md border px-3 py-1.5 text-sm font-medium transition-colors ${
                     active
                       ? 'border-brand-600 bg-brand-600 text-white'
-                      : 'border-ink-200 bg-white text-ink-700 hover:border-brand-400 hover:text-brand-700'
+                      : 'border-border-subtle bg-surface text-text-primary hover:border-brand-400 hover:text-brand-900'
                   }`}
                 >
                   {formatTime(slot.startsAt)}
@@ -73,7 +73,7 @@ export function SlotPicker({
         <button
           type="button"
           onClick={() => setExpanded((n) => n + 5)}
-          className="text-sm font-medium text-brand-700 underline underline-offset-4"
+          className="text-sm font-medium text-brand-900 underline underline-offset-4"
         >
           Show more days ({byDay.length - expanded} more)
         </button>

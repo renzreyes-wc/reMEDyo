@@ -1,9 +1,15 @@
 /**
  * Shared UI primitives.
  *
- * Deliberately small: a handful of building blocks the feature folders compose,
- * rather than a component library. Everything is plain Tailwind on the tokens
- * declared in globals.css, so the visual language stays in one place.
+ * Deliberately small: a handful of building blocks the feature folders
+ * compose, rather than a component library. Everything reads from the
+ * semantic token tier in globals.css — never a raw palette step, and never an
+ * opacity modifier standing in for a colour that should have a name.
+ *
+ * Colour carries meaning in this product, so the tones below are not
+ * interchangeable. `warning` is reserved for safety and prototype notices;
+ * `info` and `support` are for ordinary informational elements; peach is
+ * artwork only and appears nowhere in this file as a badge or status surface.
  */
 
 import Link from 'next/link';
@@ -13,21 +19,20 @@ type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 const BUTTON_BASE =
-  'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-55';
+  'inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-55';
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800',
+  primary: 'bg-brand-600 text-text-on-brand hover:bg-brand-900 active:bg-brand-900',
   secondary:
-    'border border-ink-200 bg-white text-ink-800 hover:bg-ink-50 hover:border-ink-300',
-  ghost: 'text-ink-600 hover:bg-ink-100 hover:text-ink-900',
-  danger:
-    'border border-danger-200 bg-danger-50 text-danger-700 hover:bg-danger-100',
+    'border border-border-subtle bg-surface text-text-primary hover:bg-brand-50 hover:border-border-strong',
+  ghost: 'text-text-muted hover:bg-brand-50 hover:text-brand-900',
+  danger: 'border border-danger-200 bg-danger-50 text-danger-700 hover:bg-danger-100',
 };
 
 const BUTTON_SIZES: Record<ButtonSize, string> = {
-  sm: 'h-8 px-3 text-sm',
-  md: 'h-10 px-4 text-sm',
-  lg: 'h-12 px-6 text-base',
+  sm: 'h-9 px-3.5 text-sm',
+  md: 'h-11 px-5 text-sm',
+  lg: 'h-13 px-7 text-base',
 };
 
 export function buttonClass(
@@ -56,16 +61,25 @@ export function ButtonLink({
   return <Link className={buttonClass(variant, size, className)} {...props} />;
 }
 
+/** Elevation is one of three steps. `raised` is the default for a card. */
 export function Card({
   className = '',
+  elevation = 'raised',
   children,
 }: {
   className?: string;
+  elevation?: 'flat' | 'raised' | 'floating';
   children: ReactNode;
 }) {
+  const shadow =
+    elevation === 'flat'
+      ? ''
+      : elevation === 'floating'
+        ? 'shadow-floating'
+        : 'shadow-raised';
   return (
     <div
-      className={`rounded-[var(--radius-card)] border border-ink-200/70 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)] ${className}`}
+      className={`rounded-card border border-border-subtle bg-surface ${shadow} ${className}`}
     >
       {children}
     </div>
@@ -82,11 +96,11 @@ export function CardHeader({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-3 border-b border-ink-100 px-5 py-4">
+    <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border-subtle px-6 py-5">
       <div>
-        <h2 className="text-base font-semibold text-ink-900">{title}</h2>
+        <h2 className="text-base font-semibold text-text-primary">{title}</h2>
         {description ? (
-          <p className="mt-0.5 text-sm text-ink-500">{description}</p>
+          <p className="mt-1 text-sm text-text-muted">{description}</p>
         ) : null}
       </div>
       {action}
@@ -94,15 +108,23 @@ export function CardHeader({
   );
 }
 
+/**
+ * Badge tones.
+ *
+ * `warning` is the alert hue and means safety or prototype status — nothing
+ * else. Informational and neutral states use the support hue so they stop
+ * borrowing amber. There is deliberately no peach tone: a decorative colour
+ * must never read as a status.
+ */
 type Tone = 'neutral' | 'brand' | 'success' | 'warning' | 'danger' | 'info';
 
 const TONES: Record<Tone, string> = {
-  neutral: 'bg-ink-100 text-ink-700',
-  brand: 'bg-brand-50 text-brand-700',
-  success: 'bg-brand-100 text-brand-800',
+  neutral: 'bg-support-100 text-support-700',
+  brand: 'bg-brand-50 text-brand-900',
+  success: 'bg-brand-100 text-brand-900',
   warning: 'bg-alert-100 text-alert-900',
   danger: 'bg-danger-50 text-danger-700',
-  info: 'bg-ink-100 text-ink-700',
+  info: 'bg-support-100 text-support-700',
 };
 
 export function Badge({
@@ -116,7 +138,7 @@ export function Badge({
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${TONES[tone]} ${className}`}
+      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${TONES[tone]} ${className}`}
     >
       {children}
     </span>
@@ -124,7 +146,7 @@ export function Badge({
 }
 
 /**
- * Initials avatar. Rendered by the application from the person's name, so no
+ * Initials avatar, rendered by the application from the person's name, so no
  * external image host is involved anywhere in the product.
  */
 export function Avatar({
@@ -134,16 +156,16 @@ export function Avatar({
 }: {
   initials: string;
   size?: 'sm' | 'md' | 'lg';
-  tone?: 'brand' | 'ink';
+  tone?: 'brand' | 'support';
 }) {
   const sizes = {
-    sm: 'h-8 w-8 text-xs',
-    md: 'h-10 w-10 text-sm',
-    lg: 'h-14 w-14 text-lg',
+    sm: 'h-9 w-9 text-xs',
+    md: 'h-11 w-11 text-sm',
+    lg: 'h-15 w-15 text-lg',
   };
   const tones = {
-    brand: 'bg-brand-100 text-brand-800',
-    ink: 'bg-ink-200 text-ink-700',
+    brand: 'bg-brand-100 text-brand-900',
+    support: 'bg-support-100 text-support-700',
   };
   return (
     <span
@@ -170,22 +192,27 @@ export function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 flex items-center gap-1 text-sm font-medium text-ink-800">
+      <span className="mb-2 flex items-center gap-1 text-sm font-semibold text-text-primary">
         {label}
         {required ? <span className="text-danger-600">*</span> : null}
       </span>
       {children}
       {error ? (
-        <span className="mt-1 block text-sm text-danger-700">{error}</span>
+        <span className="mt-1.5 block text-sm text-danger-700">{error}</span>
       ) : hint ? (
-        <span className="mt-1 block text-sm text-ink-500">{hint}</span>
+        <span className="mt-1.5 block text-sm text-text-muted">{hint}</span>
       ) : null}
     </label>
   );
 }
 
+/**
+ * The control border is `border-strong`, which clears 3:1 against its
+ * surface. A form control whose boundary a reader cannot see is not a
+ * usable control, whatever it looks like.
+ */
 export const inputClass =
-  'w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-900 placeholder:text-ink-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:bg-ink-50';
+  'w-full rounded-md border border-border-strong bg-surface px-3.5 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-focus-ring disabled:bg-surface-sunk disabled:text-text-muted';
 
 export function Input({ className = '', ...props }: ComponentProps<'input'>) {
   return <input className={`${inputClass} ${className}`} {...props} />;
@@ -199,6 +226,10 @@ export function Select({ className = '', ...props }: ComponentProps<'select'>) {
   return <select className={`${inputClass} ${className}`} {...props} />;
 }
 
+/**
+ * `warning` and `danger` keep their reserved meanings. `info` sits on the
+ * support hue so an ordinary notice cannot be mistaken for a safety one.
+ */
 export function Alert({
   tone = 'info',
   title,
@@ -209,13 +240,13 @@ export function Alert({
   children?: ReactNode;
 }) {
   const tones = {
-    info: 'border-ink-200 bg-ink-50 text-ink-800',
+    info: 'border-support-300 bg-support-100 text-support-700',
     warning: 'border-alert-200 bg-alert-50 text-alert-900',
     danger: 'border-danger-200 bg-danger-50 text-danger-700',
-    success: 'border-brand-200 bg-brand-50 text-brand-800',
+    success: 'border-brand-300 bg-brand-50 text-brand-900',
   };
   return (
-    <div className={`rounded-lg border px-4 py-3 text-sm ${tones[tone]}`} role="status">
+    <div className={`rounded-md border px-4 py-3.5 text-sm ${tones[tone]}`} role="status">
       {title ? <p className="font-semibold">{title}</p> : null}
       {children ? <div className={title ? 'mt-1' : ''}>{children}</div> : null}
     </div>
@@ -223,8 +254,9 @@ export function Alert({
 }
 
 /**
- * Empty states are a product decision, not a fallback. Several specs require
- * an explanatory empty state rather than a blank panel or an error.
+ * Empty states are a product decision, not a fallback — several specs require
+ * an explanatory empty state rather than a blank panel. The peach mark is the
+ * one place a decorative hue appears, and it carries no meaning.
  */
 export function EmptyState({
   title,
@@ -236,20 +268,34 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-[var(--radius-card)] border border-dashed border-ink-200 bg-white/60 px-6 py-12 text-center">
-      <p className="text-sm font-semibold text-ink-800">{title}</p>
+    <div className="flex flex-col items-center justify-center rounded-card border border-dashed border-border-subtle bg-surface px-6 py-14 text-center">
+      <span
+        aria-hidden="true"
+        className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-peach"
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M12 6v12M6 12h12"
+            stroke="#17332c"
+            strokeWidth="2"
+            strokeLinecap="round"
+            opacity="0.45"
+          />
+        </svg>
+      </span>
+      <p className="text-sm font-semibold text-text-primary">{title}</p>
       {description ? (
-        <p className="mt-1 max-w-sm text-sm text-ink-500">{description}</p>
+        <p className="mt-1.5 max-w-sm text-sm text-text-muted">{description}</p>
       ) : null}
-      {action ? <div className="mt-4">{action}</div> : null}
+      {action ? <div className="mt-5">{action}</div> : null}
     </div>
   );
 }
 
 export function Spinner({ label = 'Loading' }: { label?: string }) {
   return (
-    <div className="flex items-center gap-2 text-sm text-ink-500" role="status">
-      <span className="h-4 w-4 animate-spin rounded-full border-2 border-ink-200 border-t-brand-600" />
+    <div className="flex items-center gap-2 text-sm text-text-muted" role="status">
+      <span className="h-4 w-4 animate-spin rounded-full border-2 border-border-subtle border-t-brand-600" />
       {label}
     </div>
   );
@@ -265,10 +311,10 @@ export function PageHeading({
   action?: ReactNode;
 }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-ink-900">{title}</h1>
-        {description ? <p className="mt-1 text-sm text-ink-500">{description}</p> : null}
+        <h1 className="text-3xl font-semibold tracking-tight text-text-primary">{title}</h1>
+        {description ? <p className="mt-1.5 text-sm text-text-muted">{description}</p> : null}
       </div>
       {action}
     </div>

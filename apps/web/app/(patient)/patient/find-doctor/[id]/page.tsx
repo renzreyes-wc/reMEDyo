@@ -85,29 +85,29 @@ export default function DoctorDetailPage() {
           <div className="flex items-start gap-4">
             <Avatar initials={doctor.initials} size="lg" />
             <div>
-              <h2 className="text-lg font-semibold text-ink-900">Dr. {doctor.fullName}</h2>
+              <h2 className="text-lg font-semibold text-text-primary">Dr. {doctor.fullName}</h2>
               <p className="mt-1 flex flex-wrap gap-1">
                 {doctor.specializations.map((s) => (
-                  <Badge key={s} tone="brand">{SPECIALIZATION_LABELS[s]}</Badge>
+                  <Badge key={s} tone="info">{SPECIALIZATION_LABELS[s]}</Badge>
                 ))}
               </p>
             </div>
           </div>
 
-          <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-ink-700">
+          <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-text-primary">
             {doctor.bio || 'No biography provided.'}
           </p>
 
-          <dl className="mt-5 grid grid-cols-2 gap-4 border-t border-ink-100 pt-4">
+          <dl className="mt-5 grid grid-cols-2 gap-4 border-t border-border-subtle pt-4">
             <div>
-              <dt className="text-xs text-ink-500">Experience</dt>
-              <dd className="text-sm font-medium text-ink-900">
+              <dt className="text-xs text-text-muted">Experience</dt>
+              <dd className="text-sm font-medium text-text-primary">
                 {doctor.yearsExperience} years
               </dd>
             </div>
             <div>
-              <dt className="text-xs text-ink-500">Consultation fee</dt>
-              <dd className="text-sm font-medium text-ink-900">
+              <dt className="text-xs text-text-muted">Consultation fee</dt>
+              <dd className="text-sm font-medium text-text-primary">
                 {formatPeso(doctor.consultationFee)}
               </dd>
             </div>

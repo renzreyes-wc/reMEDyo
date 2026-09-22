@@ -27,7 +27,7 @@ export default function AdminDashboard() {
         <Stat
           label="Awaiting review"
           value={stats.doctorsPendingReview}
-          tone={stats.doctorsPendingReview > 0 ? 'alert' : 'neutral'}
+          tone={stats.doctorsPendingReview > 0 ? 'attention' : 'neutral'}
           action={
             stats.doctorsPendingReview > 0 ? (
               <ButtonLink href="/admin/doctors" size="sm" className="mt-3">
@@ -60,22 +60,23 @@ function Stat({
 }: {
   label: string;
   value: number;
-  tone?: 'neutral' | 'alert';
+  /** `attention` draws the eye without borrowing the safety hue. */
+  tone?: 'neutral' | 'attention';
   flat?: boolean;
   action?: React.ReactNode;
 }) {
   const body = (
     <>
-      <p className="text-sm text-ink-500">{label}</p>
-      <p className="mt-1 text-3xl font-semibold text-ink-900">{value}</p>
+      <p className="text-sm text-text-muted">{label}</p>
+      <p className="mt-1 text-3xl font-semibold text-text-primary">{value}</p>
       {action}
     </>
   );
 
-  if (flat) return <div className="rounded-lg bg-ink-50 p-4">{body}</div>;
+  if (flat) return <div className="rounded-md bg-surface-sunk p-4">{body}</div>;
 
   return (
-    <Card className={`p-5 ${tone === 'alert' ? 'border-alert-200 bg-alert-50/50' : ''}`}>
+    <Card className={`p-5 ${tone === 'attention' ? 'border-support-300 bg-support-100' : ''}`}>
       {body}
     </Card>
   );

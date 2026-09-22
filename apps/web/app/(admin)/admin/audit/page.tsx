@@ -73,7 +73,7 @@ export default function AuditLogPage() {
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="border-b border-ink-100 bg-ink-50/60 text-left">
+              <thead className="border-b border-border-subtle bg-surface-sunk text-left">
                 <tr>
                   <Th>When</Th>
                   <Th>Administrator</Th>
@@ -82,13 +82,13 @@ export default function AuditLogPage() {
                   <Th>Reason</Th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink-100">
+              <tbody className="divide-y divide-border-subtle">
                 {entries.map((e) => (
                   <tr key={e.id}>
-                    <td className="whitespace-nowrap px-4 py-3 text-ink-600">
+                    <td className="whitespace-nowrap px-4 py-3 text-text-muted">
                       {formatDateTime(e.createdAt)}
                     </td>
-                    <td className="px-4 py-3 text-ink-800">{e.actorEmail}</td>
+                    <td className="px-4 py-3 text-text-primary">{e.actorEmail}</td>
                     <td className="px-4 py-3">
                       <Badge
                         tone={
@@ -102,11 +102,11 @@ export default function AuditLogPage() {
                         {AUDIT_ACTION_LABELS[e.action]}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 text-ink-600">
-                      <span className="text-ink-500">{e.targetType}</span>{' '}
+                    <td className="px-4 py-3 text-text-muted">
+                      <span className="text-text-muted">{e.targetType}</span>{' '}
                       <code className="text-xs">{e.targetId.slice(-8)}</code>
                     </td>
-                    <td className="max-w-xs px-4 py-3 text-ink-600">{e.reason ?? '—'}</td>
+                    <td className="max-w-xs px-4 py-3 text-text-muted">{e.reason ?? '—'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -120,7 +120,7 @@ export default function AuditLogPage() {
 
 function Th({ children }: { children: React.ReactNode }) {
   return (
-    <th className="px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-ink-500">
+    <th className="px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-text-muted">
       {children}
     </th>
   );

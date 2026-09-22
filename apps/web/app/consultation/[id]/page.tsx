@@ -128,7 +128,7 @@ export default function ConsultationPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
-      <header className="border-b border-ink-200 bg-white">
+      <header className="border-b border-border-subtle bg-surface">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link href={isDoctor ? '/doctor' : '/patient'} aria-label="Back">
             <Logo />
@@ -167,12 +167,12 @@ export default function ConsultationPage() {
             />
 
             {notice ? (
-              <div className="px-5 pt-4"><Alert tone="warning">{notice}</Alert></div>
+              <div className="px-5 pt-4"><Alert tone="info">{notice}</Alert></div>
             ) : null}
 
             <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-5">
               {context.messages.length === 0 ? (
-                <p className="py-8 text-center text-sm text-ink-500">
+                <p className="py-8 text-center text-sm text-text-muted">
                   {selfJoined
                     ? 'No messages yet. Say hello.'
                     : 'Join the consultation to start talking.'}
@@ -183,10 +183,10 @@ export default function ConsultationPage() {
                   return (
                     <div key={m.id} className={mine ? 'flex justify-end' : 'flex'}>
                       <div
-                        className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
+                        className={`max-w-[80%] rounded-card px-4 py-2.5 ${
                           mine
                             ? 'bg-brand-600 text-white'
-                            : 'bg-ink-100 text-ink-900'
+                            : 'bg-surface-sunk text-text-primary'
                         }`}
                       >
                         {!mine ? (
@@ -195,7 +195,7 @@ export default function ConsultationPage() {
                           </p>
                         ) : null}
                         <p className="text-sm leading-relaxed">{m.body}</p>
-                        <p className={`mt-1 text-[11px] ${mine ? 'text-white/70' : 'text-ink-500'}`}>
+                        <p className={`mt-1 text-[11px] ${mine ? 'text-brand-50' : 'text-text-muted'}`}>
                           {formatTime(m.sentAt)}
                         </p>
                       </div>
@@ -205,9 +205,9 @@ export default function ConsultationPage() {
               )}
             </div>
 
-            <div className="border-t border-ink-100 p-4">
+            <div className="border-t border-border-subtle p-4">
               {ended ? (
-                <p className="text-center text-sm text-ink-500">
+                <p className="text-center text-sm text-text-muted">
                   This consultation has ended. The transcript above stays available to both of you.
                 </p>
               ) : !selfJoined ? (
@@ -233,22 +233,22 @@ export default function ConsultationPage() {
           {/* Context panel */}
           <div className="space-y-5">
             <Card className="p-5">
-              <h2 className="text-sm font-semibold text-ink-900">Appointment</h2>
+              <h2 className="text-sm font-semibold text-text-primary">Appointment</h2>
               <dl className="mt-3 space-y-2 text-sm">
                 <div>
-                  <dt className="text-ink-500">When</dt>
-                  <dd className="text-ink-900">
+                  <dt className="text-text-muted">When</dt>
+                  <dd className="text-text-primary">
                     {formatRange(appointment.startsAt, appointment.endsAt)}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-ink-500">Reason for visit</dt>
-                  <dd className="text-ink-800">{appointment.reasonForVisit}</dd>
+                  <dt className="text-text-muted">Reason for visit</dt>
+                  <dd className="text-text-primary">{appointment.reasonForVisit}</dd>
                 </div>
               </dl>
 
               {!ended && !context.joinable ? (
-                <p className="mt-3 rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-600">
+                <p className="mt-3 rounded-md bg-surface-sunk px-3 py-2 text-xs text-text-muted">
                   The room opens at {formatTime(context.joinOpensAt)} and closes at{' '}
                   {formatTime(context.joinClosesAt)}.
                 </p>
@@ -258,11 +258,11 @@ export default function ConsultationPage() {
             {/* Clinical context is served to the doctor only. */}
             {clinicalContext ? (
               <Card className="p-5">
-                <h2 className="text-sm font-semibold text-ink-900">Patient context</h2>
+                <h2 className="text-sm font-semibold text-text-primary">Patient context</h2>
                 <dl className="mt-3 space-y-3 text-sm">
                   <div>
-                    <dt className="text-xs uppercase tracking-wide text-ink-500">Age</dt>
-                    <dd className="text-ink-900">
+                    <dt className="text-xs uppercase tracking-wide text-text-muted">Age</dt>
+                    <dd className="text-text-primary">
                       {clinicalContext.age !== null ? `${clinicalContext.age} years` : 'Not recorded'}
                     </dd>
                   </div>
@@ -275,8 +275,8 @@ export default function ConsultationPage() {
 
             {isDoctor && !ended ? (
               <Card className="p-5">
-                <h2 className="text-sm font-semibold text-ink-900">Finish up</h2>
-                <p className="mt-1 text-sm text-ink-600">
+                <h2 className="text-sm font-semibold text-text-primary">Finish up</h2>
+                <p className="mt-1 text-sm text-text-muted">
                   Ending the session marks the appointment completed and opens the
                   record form.
                 </p>
@@ -313,10 +313,10 @@ function ContextList({
 }) {
   return (
     <div>
-      <dt className="text-xs uppercase tracking-wide text-ink-500">{label}</dt>
+      <dt className="text-xs uppercase tracking-wide text-text-muted">{label}</dt>
       <dd className="mt-1">
         {items.length === 0 ? (
-          <span className="text-ink-400">None recorded</span>
+          <span className="text-text-muted">None recorded</span>
         ) : (
           <ul className="space-y-1">
             {items.map((item) => (
@@ -325,7 +325,7 @@ function ContextList({
                 className={`rounded px-2 py-1 text-sm ${
                   tone === 'danger'
                     ? 'bg-danger-50 text-danger-700'
-                    : 'bg-ink-50 text-ink-800'
+                    : 'bg-surface-sunk text-text-primary'
                 }`}
               >
                 {item}
@@ -341,7 +341,7 @@ function ContextList({
 function SessionBadge({ state, missed }: { state: string; missed: boolean }) {
   if (state === 'COMPLETED') return <Badge tone="success">Completed</Badge>;
   if (state === 'IN_PROGRESS') return <Badge tone="brand">Both present</Badge>;
-  if (state === 'JOINED') return <Badge tone="warning">Waiting for the other person</Badge>;
+  if (state === 'JOINED') return <Badge tone="info">Waiting for the other person</Badge>;
   if (missed) return <Badge tone="danger">Missed</Badge>;
   return <Badge tone="info">Not started</Badge>;
 }

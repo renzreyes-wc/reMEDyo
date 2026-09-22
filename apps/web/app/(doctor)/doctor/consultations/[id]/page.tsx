@@ -123,7 +123,7 @@ export default function ConsultationRecordPage() {
       />
 
       {!completed ? (
-        <Alert tone="warning" title="This consultation is not finished">
+        <Alert tone="info" title="This consultation is not finished">
           You can write the record once the session has been completed. Open the
           consultation room and end the session first.
           <div className="mt-3">
@@ -149,9 +149,9 @@ export default function ConsultationRecordPage() {
               ) : null}
               {savedNote ? <Alert tone="success">Record saved. The patient has been notified.</Alert> : null}
 
-              <div className="rounded-lg bg-ink-50 px-3 py-2 text-sm">
-                <span className="text-ink-500">Reason for visit: </span>
-                <span className="text-ink-800">{appointment.reasonForVisit}</span>
+              <div className="rounded-md bg-surface-sunk px-3 py-2 text-sm">
+                <span className="text-text-muted">Reason for visit: </span>
+                <span className="text-text-primary">{appointment.reasonForVisit}</span>
               </div>
 
               <Field label="Findings" required>
@@ -256,7 +256,7 @@ export default function ConsultationRecordPage() {
               </form>
 
               {entry.prescriptions.length > 0 ? (
-                <div className="mt-5 space-y-3 border-t border-ink-100 pt-5">
+                <div className="mt-5 space-y-3 border-t border-border-subtle pt-5">
                   {entry.prescriptions.map((p) => (
                     <PrescriptionCard key={p.id} prescription={p} />
                   ))}

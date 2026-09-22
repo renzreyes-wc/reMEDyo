@@ -56,7 +56,7 @@ export default function DoctorDashboard() {
       {profile.approvalState !== 'APPROVED' ? (
         <div className="mb-6">
           <Alert
-            tone={profile.approvalState === 'PENDING' ? 'warning' : 'danger'}
+            tone={profile.approvalState === 'PENDING' ? 'info' : 'danger'}
             title={
               profile.approvalState === 'PENDING'
                 ? 'Your profile is awaiting review'
@@ -82,13 +82,13 @@ export default function DoctorDashboard() {
           label="Awaiting a record"
           value={awaitingRecord.length}
           hint="completed, unwritten"
-          tone={awaitingRecord.length > 0 ? 'alert' : 'neutral'}
+          tone={awaitingRecord.length > 0 ? 'attention' : 'neutral'}
         />
       </div>
 
       {awaitingRecord.length > 0 ? (
         <section className="mb-8">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-alert-700">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-support-700">
             Needs a written record
           </h2>
           <div className="grid gap-4 lg:grid-cols-2">
@@ -101,7 +101,7 @@ export default function DoctorDashboard() {
 
       <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <section>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-500">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text-muted">
             Next up
           </h2>
           {next.length === 0 ? (
@@ -122,11 +122,11 @@ export default function DoctorDashboard() {
         <Card className="h-fit">
           <CardHeader title="Your availability" />
           <div className="p-5">
-            <p className="text-sm text-ink-600">
+            <p className="text-sm text-text-muted">
               {profile.nextSlots.length} bookable slots in the coming weeks.
             </p>
             {profile.nextSlots.length > 0 ? (
-              <p className="mt-2 text-sm text-ink-500">
+              <p className="mt-2 text-sm text-text-muted">
                 Next open slot: {formatDate(profile.nextSlots[0].startsAt)}
               </p>
             ) : null}
@@ -149,13 +149,14 @@ function Stat({
   label: string;
   value: number;
   hint: string;
-  tone?: 'neutral' | 'alert';
+  /** `attention` draws the eye without borrowing the safety hue. */
+  tone?: 'neutral' | 'attention';
 }) {
   return (
-    <Card className={`p-5 ${tone === 'alert' ? 'border-alert-200 bg-alert-50/50' : ''}`}>
-      <p className="text-sm text-ink-500">{label}</p>
-      <p className="mt-1 text-3xl font-semibold text-ink-900">{value}</p>
-      <p className="text-xs text-ink-500">{hint}</p>
+    <Card className={`p-5 ${tone === 'attention' ? 'border-support-300 bg-support-100' : ''}`}>
+      <p className="text-sm text-text-muted">{label}</p>
+      <p className="mt-1 text-3xl font-semibold text-text-primary">{value}</p>
+      <p className="text-xs text-text-muted">{hint}</p>
     </Card>
   );
 }

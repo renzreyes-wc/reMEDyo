@@ -104,7 +104,7 @@ export default function PatientProfilePage() {
 
       {incomplete ? (
         <div className="mb-6">
-          <Alert tone="warning" title="Finish your profile to book">
+          <Alert tone="info" title="Finish your profile to book">
             Your name and date of birth are required before you can book a
             consultation. Everything else is optional.
           </Alert>
@@ -129,10 +129,10 @@ export default function PatientProfilePage() {
             <div className="flex items-center gap-4">
               <Avatar initials={profile.initials} size="lg" />
               <div>
-                <p className="text-sm font-medium text-ink-900">
+                <p className="text-sm font-medium text-text-primary">
                   {profile.fullName ?? 'Unnamed patient'}
                 </p>
-                <p className="text-sm text-ink-500">
+                <p className="text-sm text-text-muted">
                   {profile.age !== null ? `${profile.age} years old` : 'Add your date of birth'}
                 </p>
               </div>
@@ -220,23 +220,23 @@ export default function PatientProfilePage() {
                 const entries = profile.history.filter((h) => h.kind === kind);
                 return (
                   <div key={kind}>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-ink-500">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
                       {MEDICAL_HISTORY_LABELS[kind]}
                     </p>
                     {entries.length === 0 ? (
-                      <p className="mt-1 text-sm text-ink-400">None recorded</p>
+                      <p className="mt-1 text-sm text-text-muted">None recorded</p>
                     ) : (
                       <ul className="mt-1.5 space-y-1.5">
                         {entries.map((e) => (
                           <li
                             key={e.id}
-                            className="flex items-start justify-between gap-3 rounded-lg bg-ink-50 px-3 py-2"
+                            className="flex items-start justify-between gap-3 rounded-md bg-surface-sunk px-3 py-2"
                           >
-                            <span className="text-sm text-ink-800">{e.description}</span>
+                            <span className="text-sm text-text-primary">{e.description}</span>
                             <button
                               type="button"
                               onClick={() => void removeEntry(e.id)}
-                              className="shrink-0 text-xs text-ink-400 hover:text-danger-700"
+                              className="shrink-0 text-xs text-text-muted hover:text-danger-700"
                             >
                               Remove
                             </button>
