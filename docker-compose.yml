@@ -32,6 +32,36 @@ services:
       retries: 20
       start_period: 5s
 
+  # The clinical-assist model, self-hosted.
+  #
+  # Not a hosted service: it is a container in this compose file, on this
+  # network, with no port published to the host and no outbound call to a
+  # vendor. `docker compose up --build` is still the whole setup story.
+  #
+  # Deliberately NOT in the api's depends_on. The first boot pulls ~2 GB, and
+  # the application must be fully usable throughout — the assist surfaces
+  # simply report unavailable until the model is there.
+  ollama:
+    image: ollama/ollama:latest
+    container_name: remedyo-ollama
+    environment:
+      OLLAMA_MODEL: ${LLM_MODEL:-llama3.2:3b}
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    volumes:
+      - ./docker/ollama-entrypoint.sh:/entrypoint.sh:ro
+      # The model cache. Survives a rebuild, so the pull happens once.
+      - remedyo-models:/root/.ollama
+    healthcheck:
+      # Healthy means "the model is loaded and answering", not merely that the
+      # server is up — nothing but a served model is useful to the api.
+      # $$ escapes compose interpolation: the shell inside the container
+      # expands this, using the OLLAMA_MODEL set on the service above.
+      test: ["CMD-SHELL", "ollama list | grep -q \"$${OLLAMA_MODEL%%:*}\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+
   api:
     build:
       context: .
@@ -46,6 +76,12 @@ services:
       API_PORT: 4000
       WEB_ORIGIN: http://localhost:3000
       NODE_ENV: production
+      # Clinical assist. Set LLM_ENABLED=false to run without the model
+      # entirely — the assist surfaces disappear and everything else is
+      # exactly as it was.
+      LLM_ENABLED: ${LLM_ENABLED:-true}
+      LLM_BASE_URL: http://ollama:11434
+      LLM_MODEL: ${LLM_MODEL:-llama3.2:3b}
     ports:
       - "4000:4000"
     healthcheck:
@@ -76,3 +112,5 @@ services:
 
 volumes:
   remedyo-db:
+  # The model cache, so the first-boot pull happens exactly once.
+  remedyo-models:

@@ -1,5 +1,14 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Max, MaxLength, Min, MinLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+  MinLength,
+} from 'class-validator';
 
 export class UpsertNoteDto {
   @IsString()
@@ -21,6 +30,17 @@ export class UpsertNoteDto {
   @IsString()
   @MaxLength(1000)
   followUp?: string;
+
+  /**
+   * Whether the doctor started from a generated draft.
+   *
+   * Declared by the authoring interface, because only the form knows: the
+   * presence of a draft row does not tell you the doctor used it. A
+   * provenance marker, not an integrity control — see design.md D7.
+   */
+  @IsOptional()
+  @IsBoolean()
+  aiAssisted?: boolean;
 }
 
 export class CreatePrescriptionDto {

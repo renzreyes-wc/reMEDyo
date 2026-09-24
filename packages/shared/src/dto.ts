@@ -132,8 +132,6 @@ export interface ConsultationContext {
   patientJoinedAt: string | null;
   doctorJoinedAt: string | null;
   joinable: boolean;
-  joinOpensAt: string;
-  joinClosesAt: string;
   messages: ConsultationMessage[];
   /** Populated for the doctor only. */
   clinicalContext?: {
@@ -168,10 +166,76 @@ export interface Prescription {
   issuedAt: string;
 }
 
+/**
+ * A generated plain-language rendering of a signed note.
+ *
+ * Not the medical record. Shown beside the clinical note, never instead of
+ * it, and only while it still explains the note's current version.
+ */
+export interface RecordSummary {
+  summary: string;
+  /** The model that produced it, so what is on screen can be traced. */
+  model: string;
+  generatedAt: string;
+}
+
 export interface MedicalRecordEntry {
   appointment: Appointment;
   note: ConsultationNote | null;
   prescriptions: Prescription[];
+  /** Null when generation is disabled, unavailable, or the summary is stale. */
+  summary: RecordSummary | null;
+}
+
+/**
+ * A generated consultation-note draft, for the doctor to edit and sign.
+ *
+ * Scaffolding, not the record: it pre-fills the form and nothing else. The
+ * doctor's save through the note endpoint remains the only writer.
+ */
+export interface NoteDraft {
+  findings: string;
+  diagnosis: string;
+  recommendations: string;
+  followUp: string | null;
+  /** Verified prescription values, each traceable to the doctor's own message. */
+  extractionCandidates: ExtractionCandidate[];
+  model: string;
+  generatedAt: string;
+}
+
+/**
+ * Prescription values read out of a doctor's own message.
+ *
+ * Never a prescription. These pre-fill the form and are labelled as awaiting
+ * the doctor's confirmation; the system can always point at the message the
+ * values came from.
+ */
+export interface ExtractionCandidate {
+  medication: string;
+  dosage: string;
+  frequency: string;
+  durationDays: number;
+  instructions: string | null;
+  sourceMessageId: string;
+  /** The words in that message these values were read from. */
+  excerpt: string;
+}
+
+/** Why no draft was produced. Rendered as one absent-assistance state. */
+export type DraftRefusalReason =
+  | 'transcript-empty'
+  | 'transcript-too-thin'
+  | 'unavailable';
+
+export type NoteDraftResult =
+  | { status: 'drafted'; draft: NoteDraft }
+  | { status: 'refused'; reason: DraftRefusalReason };
+
+/** Whether assist surfaces should be offered at all. */
+export interface AssistAvailability {
+  enabled: boolean;
+  model: string | null;
 }
 
 export interface Notification {

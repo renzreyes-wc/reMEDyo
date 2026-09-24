@@ -246,13 +246,6 @@ export default function ConsultationPage() {
                   <dd className="text-text-primary">{appointment.reasonForVisit}</dd>
                 </div>
               </dl>
-
-              {!ended && !context.joinable ? (
-                <p className="mt-3 rounded-md bg-surface-sunk px-3 py-2 text-xs text-text-muted">
-                  The room opens at {formatTime(context.joinOpensAt)} and closes at{' '}
-                  {formatTime(context.joinClosesAt)}.
-                </p>
-              ) : null}
             </Card>
 
             {/* Clinical context is served to the doctor only. */}

@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 import {
-  JOIN_WINDOW_AFTER_MINUTES,
+  MISSED_GRACE_MINUTES,
   type Appointment as AppointmentDto,
 } from '@remedyo/shared';
 import { initialsOf } from '../../common/initials';
@@ -20,8 +20,8 @@ export type AppointmentRow = Prisma.AppointmentGetPayload<{
 }>;
 
 export function toAppointmentDto(row: AppointmentRow): AppointmentDto {
-  const joinClosesAt = new Date(
-    row.endsAt.getTime() + JOIN_WINDOW_AFTER_MINUTES * 60_000,
+  const missedAfter = new Date(
+    row.endsAt.getTime() + MISSED_GRACE_MINUTES * 60_000,
   );
 
   return {
@@ -44,9 +44,10 @@ export function toAppointmentDto(row: AppointmentRow): AppointmentDto {
     reasonForVisit: row.reasonForVisit,
     cancelledBy: row.cancelledBy,
     cancellationReason: row.cancellationReason,
-    // Derived, never stored: a scheduled appointment whose join window has
-    // closed without completion reads as missed. Nothing sweeps the table.
-    missed: row.state === 'SCHEDULED' && joinClosesAt < new Date(),
+    // Derived, never stored: a scheduled appointment whose time has passed
+    // without completion reads as missed. Nothing sweeps the table, and the
+    // label does not bar joining — it is late, not closed.
+    missed: row.state === 'SCHEDULED' && missedAfter < new Date(),
     hasNote: row.note !== null,
     prescriptionCount: row._count.prescriptions,
   };

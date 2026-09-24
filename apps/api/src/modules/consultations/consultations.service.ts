@@ -6,8 +6,6 @@ import {
 } from '@nestjs/common';
 import { MedicalHistoryKind, Role, SessionState } from '@prisma/client';
 import {
-  JOIN_WINDOW_AFTER_MINUTES,
-  JOIN_WINDOW_BEFORE_MINUTES,
   type ConsultationContext,
   type ConsultationMessage,
 } from '@remedyo/shared';
@@ -51,13 +49,12 @@ export class ConsultationsService {
     }
 
     const session = await this.ensureSession(appointmentId);
-    const { opensAt, closesAt } = this.joinWindow(appointment.startsAt, appointment.endsAt);
 
     const messages = await this.messages(appointmentId);
 
-    const now = new Date();
-    const joinable =
-      appointment.state === 'SCHEDULED' && now >= opensAt && now <= closesAt;
+    // Joining is bounded by the appointment's state, not by the clock: a
+    // participant who is early, or late, still belongs in this room.
+    const joinable = appointment.state === 'SCHEDULED';
 
     const context: ConsultationContext = {
       appointment: toAppointmentDto(appointment),
@@ -65,8 +62,6 @@ export class ConsultationsService {
       patientJoinedAt: session.patientJoinedAt?.toISOString() ?? null,
       doctorJoinedAt: session.doctorJoinedAt?.toISOString() ?? null,
       joinable,
-      joinOpensAt: opensAt.toISOString(),
-      joinClosesAt: closesAt.toISOString(),
       messages,
     };
 
@@ -111,21 +106,7 @@ export class ConsultationsService {
       throw new NotFoundException('That consultation does not exist.');
     }
 
-    const { opensAt, closesAt } = this.joinWindow(appointment.startsAt, appointment.endsAt);
     const now = new Date();
-
-    if (now < opensAt) {
-      throw new BadRequestException(
-        `This consultation opens at ${opensAt.toLocaleTimeString('en-PH', {
-          hour: 'numeric',
-          minute: '2-digit',
-        })}.`,
-      );
-    }
-    if (now > closesAt) {
-      throw new BadRequestException('The join window for this consultation has closed.');
-    }
-
     const session = await this.ensureSession(appointmentId);
 
     const patientJoinedAt = isPatient
@@ -235,6 +216,66 @@ export class ConsultationsService {
     };
   }
 
+  /**
+   * The transcript and clinical context for that appointment's own clinician,
+   * for drafting their note after completion.
+   *
+   * Reuses the assembly `context()` already performs rather than rebuilding
+   * it. Authorisation is the caller's: this is only reached through the
+   * records module's authoring-doctor check, so the transcript is never
+   * exposed through drafting to the patient or to any other user.
+   */
+  async draftingContext(appointmentId: string, patientId: string) {
+    const [messages, history, patient] = await Promise.all([
+      this.transcript(appointmentId),
+      this.prisma.medicalHistoryEntry.findMany({ where: { patientId } }),
+      this.prisma.patientProfile.findUnique({
+        where: { id: patientId },
+        select: { dateOfBirth: true },
+      }),
+    ]);
+
+    const pick = (kind: MedicalHistoryKind) =>
+      history.filter((h) => h.kind === kind).map((h) => h.description);
+
+    return {
+      messages,
+      clinicalContext: {
+        age: ageFrom(patient?.dateOfBirth),
+        allergies: pick(MedicalHistoryKind.ALLERGY),
+        medications: pick(MedicalHistoryKind.MEDICATION),
+        conditions: pick(MedicalHistoryKind.CONDITION),
+      },
+    };
+  }
+
+  /** Raw message rows for one appointment, sender ids intact. */
+  private async transcript(appointmentId: string) {
+    const rows = await this.prisma.message.findMany({
+      where: { appointmentId },
+      orderBy: { sentAt: 'asc' },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            patientProfile: { select: { fullName: true } },
+            doctorProfile: { select: { fullName: true } },
+          },
+        },
+      },
+    });
+
+    return rows.map((m) => ({
+      id: m.id,
+      senderId: m.senderId,
+      senderName: m.sender.doctorProfile?.fullName
+        ? `Dr. ${m.sender.doctorProfile.fullName}`
+        : (m.sender.patientProfile?.fullName ?? 'Participant'),
+      body: m.body,
+      sentAt: m.sentAt,
+    }));
+  }
+
   private async messages(appointmentId: string): Promise<ConsultationMessage[]> {
     const rows = await this.prisma.message.findMany({
       where: { appointmentId },
@@ -286,12 +327,5 @@ export class ConsultationsService {
     return this.prisma.consultationSession.create({
       data: { appointmentId, state: 'SCHEDULED' },
     });
-  }
-
-  private joinWindow(startsAt: Date, endsAt: Date): { opensAt: Date; closesAt: Date } {
-    return {
-      opensAt: new Date(startsAt.getTime() - JOIN_WINDOW_BEFORE_MINUTES * 60_000),
-      closesAt: new Date(endsAt.getTime() + JOIN_WINDOW_AFTER_MINUTES * 60_000),
-    };
   }
 }

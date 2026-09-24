@@ -17,7 +17,7 @@ app = "remedyo-web"
 primary_region = "sin"
 
 [build]
-  dockerfile = "apps/web/Dockerfile"
+  dockerfile = "Dockerfile"
 
 [env]
   NODE_ENV = "production"

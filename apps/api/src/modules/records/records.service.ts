@@ -6,8 +6,11 @@ import {
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import type {
+  AssistAvailability,
   ConsultationNote,
   MedicalRecordEntry,
+  NoteDraft,
+  NoteDraftResult,
   Prescription,
 } from '@remedyo/shared';
 import { PrismaService } from '../../common/prisma.service';
@@ -16,6 +19,10 @@ import { AppointmentsService } from '../appointments/appointments.service';
 import { APPOINTMENT_INCLUDE, toAppointmentDto } from '../appointments/appointments.mapper';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CreatePrescriptionDto, UpsertNoteDto } from './dto/records.dto';
+import { DraftService } from './draft.service';
+import { LlmProvider } from '../llm/llm.provider';
+import { SummaryService } from './summary.service';
+import { isSummaryCurrent } from './summary.staleness';
 
 @Injectable()
 export class RecordsService {
@@ -23,7 +30,52 @@ export class RecordsService {
     private readonly prisma: PrismaService,
     private readonly appointments: AppointmentsService,
     private readonly notifications: NotificationsService,
+    private readonly summaries: SummaryService,
+    private readonly drafts: DraftService,
+    private readonly llm: LlmProvider,
   ) {}
+
+  /**
+   * Whether assistance is on offer, so the web can decide whether to render
+   * the draft action at all rather than a button that always fails.
+   */
+  assistAvailability(): AssistAvailability {
+    return {
+      enabled: this.llm.isEnabled(),
+      model: this.llm.isEnabled() ? this.llm.modelName() : null,
+    };
+  }
+
+  /**
+   * Generate a draft of the note from this consultation's own transcript.
+   *
+   * Doctor-initiated and never automatic on completion: a session with two
+   * messages has nothing to summarise, and generation should follow the
+   * clinician's intent rather than a state transition.
+   */
+  async draftNote(user: AuthUser, appointmentId: string): Promise<NoteDraftResult> {
+    const appointment = await this.requireAuthoringDoctor(user, appointmentId);
+
+    if (appointment.state !== 'COMPLETED') {
+      throw new BadRequestException(
+        'Complete the consultation before drafting its notes.',
+      );
+    }
+
+    return this.drafts.generate(
+      appointmentId,
+      appointment.patientId,
+      user.id,
+      appointment.reasonForVisit,
+      appointment.startsAt,
+    );
+  }
+
+  /** The draft already generated for this appointment, if there is one. */
+  async existingDraft(user: AuthUser, appointmentId: string): Promise<NoteDraft | null> {
+    await this.requireAuthoringDoctor(user, appointmentId);
+    return this.drafts.existing(appointmentId);
+  }
 
   /** The patient's own history: every appointment with what it produced. */
   async myRecords(user: AuthUser): Promise<MedicalRecordEntry[]> {
@@ -33,7 +85,7 @@ export class RecordsService {
     });
     if (!patient) throw new NotFoundException('Patient profile not found.');
 
-    return this.recordsForPatient(patient.id);
+    return this.recordsForPatient(patient.id, user.id);
   }
 
   /**
@@ -65,7 +117,7 @@ export class RecordsService {
 
     // Once the relationship exists the whole record is visible, including
     // entries authored by other doctors — that is the point of a shared record.
-    return this.recordsForPatient(patientId);
+    return this.recordsForPatient(patientId, user.id);
   }
 
   async upsertNote(
@@ -93,6 +145,7 @@ export class RecordsService {
           diagnosis: dto.diagnosis.trim(),
           recommendations: dto.recommendations.trim(),
           followUp: dto.followUp?.trim() || null,
+          aiAssisted: dto.aiAssisted ?? false,
         },
         create: {
           appointmentId,
@@ -100,6 +153,7 @@ export class RecordsService {
           diagnosis: dto.diagnosis.trim(),
           recommendations: dto.recommendations.trim(),
           followUp: dto.followUp?.trim() || null,
+          aiAssisted: dto.aiAssisted ?? false,
         },
       });
 
@@ -116,6 +170,13 @@ export class RecordsService {
 
       return saved;
     });
+
+    // After the commit, and deliberately not awaited: a generation must never
+    // be in the path of the most important write in the product. If it fails,
+    // is slow, or the runtime is down, the note is already saved and the
+    // patient already notified — only the summary is absent, and the next
+    // records read will schedule it again.
+    this.summaries.schedule(appointmentId, user.id);
 
     return {
       id: note.id,
@@ -186,18 +247,33 @@ export class RecordsService {
   ): Promise<MedicalRecordEntry> {
     const appointment = await this.appointments.loadForParticipant(user, appointmentId);
 
-    const [note, prescriptions] = await Promise.all([
+    const [note, prescriptions, summary] = await Promise.all([
       this.prisma.consultationNote.findUnique({ where: { appointmentId } }),
       this.prisma.prescription.findMany({
         where: { appointmentId },
         orderBy: { issuedAt: 'asc' },
       }),
+      this.prisma.consultationNoteSummary.findUnique({ where: { appointmentId } }),
     ]);
 
     const prescriber = `Dr. ${appointment.doctor.fullName}`;
+    const current = isSummaryCurrent(summary, note);
+
+    // Repair on read: a generation lost to a restart, a timeout, or a runtime
+    // that was down at save time is not lost forever. The read itself never
+    // waits on it, so this page keeps exactly today's latency.
+    if (note && !current) this.summaries.schedule(appointmentId, user.id);
 
     return {
       appointment: toAppointmentDto(appointment),
+      summary:
+        current && summary
+          ? {
+              summary: summary.summary,
+              model: summary.model,
+              generatedAt: summary.generatedAt.toISOString(),
+            }
+          : null,
       note: note
         ? {
             id: note.id,
@@ -225,21 +301,41 @@ export class RecordsService {
     };
   }
 
-  private async recordsForPatient(patientId: string): Promise<MedicalRecordEntry[]> {
+  private async recordsForPatient(
+    patientId: string,
+    readerId: string,
+  ): Promise<MedicalRecordEntry[]> {
     const appointments = await this.prisma.appointment.findMany({
       where: { patientId },
       include: {
         ...APPOINTMENT_INCLUDE,
         note: true,
+        noteSummary: true,
         prescriptions: { orderBy: { issuedAt: 'asc' } },
       },
       orderBy: { startsAt: 'desc' },
     });
 
+    // One extra column on a query this already runs: no second call, no
+    // loading state, and no model call anywhere on this path.
+    for (const a of appointments) {
+      if (a.note && !isSummaryCurrent(a.noteSummary, a.note)) {
+        this.summaries.schedule(a.id, readerId);
+      }
+    }
+
     return appointments.map((a) => {
       const prescriber = `Dr. ${a.doctor.fullName}`;
+      const summary = isSummaryCurrent(a.noteSummary, a.note) ? a.noteSummary : null;
       return {
         appointment: toAppointmentDto(a),
+        summary: summary
+          ? {
+              summary: summary.summary,
+              model: summary.model,
+              generatedAt: summary.generatedAt.toISOString(),
+            }
+          : null,
         note: a.note
           ? {
               id: a.note.id,

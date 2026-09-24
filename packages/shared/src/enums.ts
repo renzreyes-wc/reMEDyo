@@ -124,6 +124,8 @@ export const AuditAction = {
   DOCTOR_REJECTED: 'DOCTOR_REJECTED',
   DOCTOR_SPECIALIZATION_UPDATED: 'DOCTOR_SPECIALIZATION_UPDATED',
   APPOINTMENT_CANCELLED: 'APPOINTMENT_CANCELLED',
+  NOTE_DRAFT_GENERATED: 'NOTE_DRAFT_GENERATED',
+  RECORD_SUMMARY_GENERATED: 'RECORD_SUMMARY_GENERATED',
 } as const;
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction];
 
@@ -135,6 +137,8 @@ export const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
   DOCTOR_REJECTED: 'Doctor rejected',
   DOCTOR_SPECIALIZATION_UPDATED: 'Specialization corrected',
   APPOINTMENT_CANCELLED: 'Appointment cancelled',
+  NOTE_DRAFT_GENERATED: 'Note draft generated',
+  RECORD_SUMMARY_GENERATED: 'Record summary generated',
 };
 
 export const Severity = {

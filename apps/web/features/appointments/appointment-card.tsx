@@ -46,8 +46,9 @@ export function AppointmentCard({
       : { name: appointment.patient.fullName, initials: appointment.patient.initials };
 
   const isActive = appointment.state === 'SCHEDULED';
-  const startsSoon = new Date(appointment.startsAt).getTime() - Date.now() < 15 * 60_000;
-  const canJoin = isActive && !appointment.missed && startsSoon;
+  // Any scheduled appointment can be entered, early or late. "Missed" is a
+  // label on the card, not a lock on the door.
+  const canJoin = isActive;
 
   async function openReschedule() {
     setAction('reschedule');

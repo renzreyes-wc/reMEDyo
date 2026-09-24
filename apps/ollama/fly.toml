@@ -1,0 +1,80 @@
+# Fly.io config for the reMEDyo clinical-assist model.
+#
+# Run every command FROM THE REPOSITORY ROOT (see apps/api/fly.toml).
+#
+# This app is PRIVATE: the [[services]] block below allocates no public ports,
+# so the model is reachable only from other apps in this organisation over
+# Fly's private network, at remedyo-ollama.flycast:11434. Nothing about the
+# model is exposed to the internet.
+#
+#   fly apps create remedyo-ollama --org <org>
+#   fly ips allocate-v6 --private --app remedyo-ollama
+#   fly volumes create remedyo_models --size 5 --region sin --app remedyo-ollama
+#   fly deploy . --config apps/ollama/fly.toml
+#
+# Then point the api at it and turn generation on:
+#   fly secrets set LLM_ENABLED=true \
+#     LLM_BASE_URL="http://remedyo-ollama.flycast:11434" --app remedyo-api
+#
+# COST AND SPEED, stated plainly. A 3B model needs ~3 GB resident, so this
+# cannot run on any shared-cpu size (all cap at 2 GB) — performance-2x is the
+# floor, and it is not free. Inference is CPU-only: a note draft measures
+# ~25-45s on a developer laptop and will be slower here, which is close to the
+# 120s ceiling in LLM_TIMEOUT_MS. If generations time out, raise that secret or
+# accept that the assist surfaces report unavailable. The application is fully
+# functional either way — that is what LLM_ENABLED=false is for.
+
+app = "remedyo-ollama"
+primary_region = "sin"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  # Read by the entrypoint to decide what to pull, and by the healthcheck.
+  OLLAMA_MODEL = "llama3.2:3b"
+  # Listen on all interfaces so the private network can reach it.
+  OLLAMA_HOST = "0.0.0.0:11434"
+  # Keep the model resident between requests: reloading 3 GB costs ~25s, which
+  # would otherwise be paid on every generation after an idle gap.
+  OLLAMA_KEEP_ALIVE = "1h"
+
+# The model cache. Without this the 2 GB pull repeats on every deploy.
+[mounts]
+  source = "remedyo_models"
+  destination = "/root/.ollama"
+
+[[services]]
+  internal_port = 11434
+  protocol = "tcp"
+  # Held at 1 rather than scaling to zero.
+  #
+  # Measured on the deployed stack: with min_machines_running = 0 the first
+  # request after an idle stop FAILS rather than waiting — Fly begins starting
+  # the machine, but the api's fetch is refused before it is listening, so the
+  # doctor sees "unavailable" and has to click twice. Degradation is correct
+  # but the surface looks broken.
+  #
+  # Set this back to 0 to halve the cost if that trade is acceptable; the
+  # feature still works, it just fails the first call after each idle period.
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  # A port must be declared, but privacy comes from the IP, not the port:
+  # this app is given ONLY a private address, so the port listens on Fly's
+  # internal network and nowhere else.
+  #
+  #   fly ips allocate-v6 --private --app remedyo-ollama
+  #
+  # Verify after deploying that `fly ips list --app remedyo-ollama` shows a
+  # private address and no public v4/v6. If a public one was allocated,
+  # release it with `fly ips release <addr> --app remedyo-ollama`.
+  [[services.ports]]
+    port = 11434
+
+[[vm]]
+  # 4 GB is the floor for a 3B model plus the server's own overhead. Every
+  # shared-cpu size caps at 2 GB, so this is a performance machine by
+  # necessity, not by preference.
+  size = "performance-2x"

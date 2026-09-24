@@ -20,7 +20,7 @@ app = "remedyo-api"
 primary_region = "sin"
 
 [build]
-  dockerfile = "apps/api/Dockerfile"
+  dockerfile = "Dockerfile"
 
 [env]
   API_PORT = "4000"
@@ -28,6 +28,25 @@ primary_region = "sin"
   # Once the web app exists, point the api at it so CORS allows the session
   # cookie:
   #   fly secrets set WEB_ORIGIN="https://remedyo-web.fly.dev" --app remedyo-api
+
+  # The web app and the api are separate Fly apps, and fly.dev is on the
+  # Public Suffix List, so remedyo-web.fly.dev and remedyo-api.fly.dev are
+  # different *sites*. A SameSite=Lax session cookie is discarded by the
+  # browser on that cross-site fetch, which makes every login look like it
+  # failed. See setSessionCookie in auth.controller.ts for the trade-off.
+  CROSS_SITE_COOKIE = "true"
+
+  # Clinical assist, off by default.
+  #
+  # Deploying without the model app is a fully supported configuration: the
+  # application behaves exactly as it did before the feature, with the assist
+  # surfaces absent rather than broken. Turning it on requires the separate
+  # model app (apps/ollama/fly.toml), which needs a 4 GB machine — see the
+  # cost note there before enabling.
+  #
+  #   fly secrets set LLM_ENABLED=true \
+  #     LLM_BASE_URL="http://remedyo-ollama.flycast:11434" --app remedyo-api
+  LLM_ENABLED = "false"
 
 [http_service]
   internal_port = 4000

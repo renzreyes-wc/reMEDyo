@@ -99,6 +99,8 @@ enum AuditAction {
   DOCTOR_REJECTED
   DOCTOR_SPECIALIZATION_UPDATED
   APPOINTMENT_CANCELLED
+  NOTE_DRAFT_GENERATED
+  RECORD_SUMMARY_GENERATED
 }
 
 /// Credentials and authorization. Never returns passwordHash to any client.
@@ -224,6 +226,8 @@ model Appointment {
 
   session       ConsultationSession?
   note          ConsultationNote?
+  noteDraft     ConsultationNoteDraft?
+  noteSummary   ConsultationNoteSummary?
   prescriptions Prescription[]
   messages      Message[]
 
@@ -271,8 +275,52 @@ model ConsultationNote {
   diagnosis       String
   recommendations String
   followUp        String?
+  /// Whether the doctor started from a generated draft. Declared by the
+  /// authoring interface at save time: a provenance marker, not a control.
+  aiAssisted      Boolean     @default(false)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+
+}
+
+/// Scaffolding for the doctor's note form, never part of the medical record.
+///
+/// One per appointment, overwritten on regeneration. The draft is not
+/// versioned because it has no reader but the form that produced it; the
+/// "who generated what, when, with which model" history lives in AuditLog,
+/// which is insert-only. There is no delete route.
+model ConsultationNoteDraft {
+  id              String      @id @default(cuid())
+  appointmentId   String      @unique
+  appointment     Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  findings        String
+  diagnosis       String
+  recommendations String
+  followUp        String?
+  /// Verified prescription candidates: structured fields plus the doctor's
+  /// own message they were read from. Transient pre-fill material with no
+  /// independent identity, so JSON rather than a table.
+  extractionCandidates Json  @default("[]")
+  /// The model that produced this, so anything on screen can be traced.
+  model           String
+  generatedAt     DateTime    @default(now())
+}
+
+/// The patient-facing plain-language rendering of a signed note.
+///
+/// Generated from the clinician-approved note and its prescriptions only —
+/// never the transcript, never the draft. Not the medical record.
+model ConsultationNoteSummary {
+  id            String      @id @default(cuid())
+  appointmentId String      @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  summary       String
+  /// The note version this explains. Displayed only while it equals the
+  /// note's current updatedAt; a revision makes this comparison fail, which
+  /// is the whole staleness mechanism. Nothing is deleted.
+  noteUpdatedAt DateTime
+  model         String
+  generatedAt   DateTime    @default(now())
 }
 
 /// Fictional throughout. The UI labels every one as not valid for dispensing.
