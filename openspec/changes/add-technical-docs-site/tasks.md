@@ -72,9 +72,9 @@ Each task: module overview, an L2 container-level diagram, and the module's slic
 ## 8. Publishing
 
 - [x] 8.1 Write `.github/workflows/docs.yml` triggered on push to `main`: a `postgres:18-alpine` service container, `openapi:emit`, then the site build, then deploy to Pages — and verify the workflow parses with `gh workflow view` or `actionlint`
-- [ ] 8.2 Verify the emit step succeeds in CI against the service container, since this is the step design D3 identifies as most likely to fail
-- [ ] 8.3 Verify a failing site build deploys nothing and leaves the previously published site intact
-- [ ] 8.4 Add the published-site link to `README.md` and verify it resolves once Pages is live
+- [x] 8.2 Verify the emit step succeeds in CI against the service container, since this is the step design D3 identifies as most likely to fail
+- [x] 8.3 Verify a failing site build deploys nothing and leaves the previously published site intact
+- [x] 8.4 Add the published-site link to `README.md` and verify it resolves once Pages is live
 
 ## 9. Acceptance
 
