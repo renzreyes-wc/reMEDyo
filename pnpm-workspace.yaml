@@ -11,3 +11,12 @@ allowBuilds:
   '@tailwindcss/oxide': true
   sharp: true
   unrs-resolver: true
+  # Transitive dependency of swagger-ui-dist, pulled in by @nestjs/swagger.
+  # Its install script only reports anonymous usage telemetry; deny it.
+  '@scarf/scarf': false
+  # Pulled in by the Docusaurus toolchain. Its install script only prints a
+  # funding notice; nothing it does is needed to build the site.
+  core-js: false
+
+minimumReleaseAgeExclude:
+  - '@nestjs/swagger@12.0.2'

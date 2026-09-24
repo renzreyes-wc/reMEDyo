@@ -11,6 +11,13 @@ place.
 
 ---
 
+**Technical documentation:** <https://renzreyes-wc.github.io/reMEDyo/> — the
+context and feature set, the architecture at four levels, every API module, the
+data model, and an API reference generated from the running application. This
+README stays what it is: the quick start.
+
+---
+
 ## Quick start
 
 **Prerequisites:** Docker Desktop (with Compose v2). Nothing else — Node, pnpm
@@ -25,8 +32,15 @@ docker compose up --build
 Then open **http://localhost:3000**.
 
 That single command starts Postgres, waits for it to be genuinely healthy,
-applies the migrations, seeds demonstration data, and serves the app. There is
-no second terminal and no manual migrate step.
+applies the migrations, seeds demonstration data, starts a local language model
+for the clinical-assist features, and serves the app. There is no second
+terminal and no manual migrate step.
+
+**On first boot the model service downloads about 2 GB.** The application does
+not wait for it: everything works immediately, and the two assist surfaces
+report that assistance is unavailable until the download finishes. The model is
+cached in a named volume, so this happens once. To skip it entirely, run with
+`LLM_ENABLED=false docker compose up --build` — see *Clinical assist* below.
 
 | Service  | URL                             |
 | -------- | ------------------------------- |
@@ -34,6 +48,7 @@ no second terminal and no manual migrate step.
 | API      | http://localhost:4000/api       |
 | Health   | http://localhost:4000/api/health |
 | Postgres | `localhost:5433` (user/pass/db: `remedyo`) |
+| Model    | internal to the compose network; no port published |
 
 ### Demo accounts
 
@@ -202,6 +217,58 @@ oversight.
 
 ---
 
+## Clinical assist
+
+Two places in this product ask a human to write prose, and both are
+summarisation of material the system already holds. Neither asks a model to
+originate clinical judgement, which is what makes them the two defensible
+places to put one in a medical product.
+
+- **Note drafting (doctor).** After a consultation is completed, its clinician
+  can draft the four note fields from that session's own transcript. The draft
+  pre-fills the form; the doctor edits and signs it. Their save is the only
+  thing that ever writes a note.
+- **Plain-language summary (patient).** After a note is saved, a plain-language
+  rendering of it is generated from the signed note and its prescriptions —
+  never the transcript — and shown beside the note, never instead of it.
+
+**This does not amend the standalone-runtime rule.** The model is a fourth
+container in this repo's own `docker-compose.yml`, on the compose network, with
+no port published. No product feature calls a hosted API, and no patient data
+ever leaves the machine: generation is a request to `ollama:11434` inside the
+compose network. `docker compose up --build` is still the whole setup story. A
+self-hosted model is an open-source library with a process around it, not a
+hosted service.
+
+Two honest caveats about "no outbound call". The model image is downloaded from
+the internet on first boot, as every Docker image is. And the upstream
+`ollama/ollama` image periodically fetches its own model-recommendations list
+from `ollama.com` — a vendor call this project neither makes nor needs, which
+fails harmlessly with no network and carries nothing of ours. Neither touches a
+consultation, a note, or a patient.
+
+Deliberately out of scope: the model has no part in authorization, doctor
+matching, emergency detection, or scheduling. Those stay deterministic — a
+missed emergency flag is the one failure here that actually harms someone.
+Prescriptions are never generated; the one permitted move is extracting values
+a doctor's own message already states, verified server-side against that
+message before they are offered.
+
+| Variable         | Default              | Meaning                                    |
+| ---------------- | -------------------- | ------------------------------------------ |
+| `LLM_ENABLED`    | `true` in compose    | `false` removes both assist surfaces entirely |
+| `LLM_BASE_URL`   | `http://ollama:11434` | Where the model server listens             |
+| `LLM_MODEL`      | `llama3.2:3b`        | Model tag to pull and serve                |
+| `LLM_TIMEOUT_MS` | `120000`             | Hard ceiling on one generation             |
+| `LLM_MAX_TOKENS` | `800`                | Token cap on one generation                |
+
+`LLM_ENABLED=false` is a first-class configuration, not a degraded one: the
+application behaves exactly as it did before this feature, with the assist
+surfaces absent rather than broken. It is what the test suite runs in, and the
+right setting on a laptop that cannot spare the memory. Outside Docker, an
+unset environment is also disabled, so nothing tries to reach a model that
+isn't there.
+
 ## Known limitations
 
 Named openly, because they were choices rather than accidents:
@@ -219,6 +286,25 @@ Named openly, because they were choices rather than accidents:
 - **Matching is rules, not intelligence.** Symptoms map to specialties through
   seeded `(symptom, specialization, weight)` rows. Deterministic, explainable,
   and the matched rows *are* the explanation shown to the patient.
+- **The local model is good at prose, not at medicine.** `llama3.2:3b` is a 3B
+  parameter model chosen so a reviewer's laptop can run it beside three other
+  containers. It is adequate for restating what a transcript said in clinical
+  register, or a note in plain words. It is not accurate enough to be trusted
+  on clinical content, and nothing here checks whether its output is clinically
+  correct — no automated check could, and claiming one would be dishonest. The
+  safety argument is structural instead: a doctor reviews and signs every
+  draft, the patient summary is generated from an already-approved note and
+  displayed beside it, and every generated surface is labelled. A larger model
+  (`LLM_MODEL=qwen2.5:7b-instruct`) summarises noticeably better if you have
+  the memory for it.
+- **`aiAssisted` is declared by the interface, not proven.** The note records
+  whether the doctor started from a generated draft, but the client declares
+  it: a doctor posting directly to the API could set either value. It is a
+  provenance marker in a prototype where the doctor is the accountable author
+  either way — not an integrity control.
+- **A failed generation is simply absent.** There is no retry queue and no job
+  infrastructure. If the model is down when a note is saved, the summary is
+  regenerated on the next read of that record instead.
 
 ## Possible next steps
 
@@ -232,30 +318,72 @@ Named openly, because they were choices rather than accidents:
 
 ## Optional: deploying to Fly.io
 
-Three first-party components — api, web, and Fly Postgres — so no SaaS or
-external feature API enters the runtime. Configs live at `apps/api/fly.toml`
-and `apps/web/fly.toml`; run everything **from the repository root**, because
-the Dockerfiles copy the pnpm workspace manifests.
+Four first-party components — api, web, Fly Postgres, and the model — so no
+SaaS or external feature API enters the runtime. Configs live at
+`apps/api/fly.toml`, `apps/web/fly.toml` and `apps/ollama/fly.toml`; run
+everything **from the repository root**, because the Dockerfiles copy the pnpm
+workspace manifests.
 
 Order matters: the web build bakes the API's public URL in at build time, so
 the api must exist first.
 
 ```bash
 # 1. API, with its database
-fly launch --no-deploy --config apps/api/fly.toml
-fly postgres create --name remedyo-db
+fly apps create remedyo-api --org <org>
+fly postgres create --name remedyo-db --region sin --org <org> \
+  --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 1
 fly postgres attach remedyo-db --app remedyo-api          # sets DATABASE_URL
 fly secrets set JWT_SECRET="$(openssl rand -hex 32)" --app remedyo-api
 fly deploy . --config apps/api/fly.toml
+fly scale count 1 --app remedyo-api    # see "one machine only" below
 
 # 2. Web, pointed at the deployed API
-fly launch --no-deploy --config apps/web/fly.toml
+fly apps create remedyo-web --org <org>
 fly deploy . --config apps/web/fly.toml \
   --build-arg NEXT_PUBLIC_API_URL=https://remedyo-api.fly.dev
 
 # 3. Close the CORS loop so the session cookie travels
 fly secrets set WEB_ORIGIN="https://remedyo-web.fly.dev" --app remedyo-api
+
+# 4. The model — private network only, with a volume for its cache
+fly apps create remedyo-ollama --org <org>
+fly ips allocate-v6 --private --app remedyo-ollama
+fly volumes create remedyo_models --size 5 --region sin --app remedyo-ollama
+fly deploy . --config apps/ollama/fly.toml
+
+# 5. Point the api at it and turn generation on
+fly secrets set LLM_ENABLED=true \
+  LLM_BASE_URL="http://remedyo-ollama.flycast:11434" --app remedyo-api
 ```
+
+**Steps 4 and 5 are optional.** `LLM_ENABLED=false` is the default in
+`apps/api/fly.toml`, and a three-app deployment is a fully supported
+configuration: everything works, the assist surfaces are simply absent.
+
+**One machine only for the api.** `fly deploy` creates a second machine for
+high availability unless told otherwise, and both run the migrate-and-seed
+start command against the same database. The seed is idempotent so the race is
+harmless in practice, but `fly scale count 1` removes it.
+
+**The model app is private.** It is given only a private IPv6, so port 11434
+listens on Fly's internal network and nowhere else — `fly ips list --app
+remedyo-ollama` should show one `private ingress` row and no public address.
+The api reaches it at `remedyo-ollama.flycast:11434`.
+
+**Keep the model machine warm.** With `min_machines_running = 0` the first
+request after an idle stop *fails* rather than waiting: Fly starts the machine,
+but the api's connection is refused before the server is listening, so the
+clinician sees "unavailable" and has to ask twice. The config holds one machine
+running for that reason. Setting it back to 0 roughly halves the cost and the
+feature still works — it just fails the first call after each idle period.
+
+**What deployed generation actually measures.** On `performance-2x` (2 cores,
+4 GB, CPU-only), note drafts came back in 14-96 seconds and patient summaries
+in 20-40, against a 120s ceiling. Roughly one attempt in five is refused
+because the model omitted a required field and the response failed structural
+validation — the clinician is told assistance is unavailable rather than handed
+a draft the form cannot save. That is the 3B model being small, not a fault in
+the pipeline, and it is the honest reliability figure for this setup.
 
 The api container applies migrations and runs the idempotent seed on start, so
 the deployed app comes up populated exactly as it does locally.

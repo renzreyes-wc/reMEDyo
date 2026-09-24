@@ -3,6 +3,17 @@
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
   "compilerOptions": {
-    "deleteOutDir": true
+    "deleteOutDir": true,
+    "plugins": [
+      {
+        "name": "@nestjs/swagger",
+        "options": {
+          "classValidatorShim": true,
+          "introspectComments": true,
+          "//": "The default is ['.dto.ts', '.entity.ts']; response models are named .response.ts so a reader can tell a request body from a response body.",
+          "dtoFileNameSuffix": [".dto.ts", ".response.ts"]
+        }
+      }
+    ]
   }
 }

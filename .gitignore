@@ -5,6 +5,11 @@ build/
 out/
 *.tsbuildinfo
 
+# The OpenAPI description is emitted by `pnpm --filter api openapi:emit`.
+# It is a build artifact: committing it would let it disagree with the routes
+# the application actually serves, which is the one thing it exists to prevent.
+apps/api/openapi.json
+
 .env
 .env.local
 !.env.example

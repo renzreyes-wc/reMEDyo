@@ -1,0 +1,49 @@
+/**
+ * Docusaurus theme overrides.
+ *
+ * Deliberately small: the defaults are well considered, and this only sets an
+ * accent colour, tightens heading spacing, and stops wide diagrams from
+ * pushing the page sideways on a narrow screen.
+ */
+
+:root {
+  --ifm-color-primary: #1f6feb;
+  --ifm-color-primary-dark: #1a63d4;
+  --ifm-color-primary-darker: #185dc8;
+  --ifm-color-primary-darkest: #144ca5;
+  --ifm-color-primary-light: #357df0;
+  --ifm-color-primary-lighter: #4185f1;
+  --ifm-color-primary-lightest: #6b9df4;
+
+  --ifm-code-font-size: 92%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #6b9df4;
+  --ifm-color-primary-dark: #4a88f1;
+  --ifm-color-primary-darker: #3a7df0;
+  --ifm-color-primary-darkest: #0f5fd9;
+  --ifm-color-primary-light: #8cb2f7;
+  --ifm-color-primary-lighter: #9cbdf8;
+  --ifm-color-primary-lightest: #c3d7fb;
+
+  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.12);
+}
+
+/* Diagrams can be wider than a phone. Let them scroll rather than reflow the
+   whole page, and never let one set the page's width. */
+.mermaid,
+.docusaurus-mermaid-container {
+  max-width: 100%;
+}
+
+.docusaurus-mermaid-container > svg {
+  max-width: 100%;
+  height: auto;
+}
+
+table {
+  display: table;
+  width: 100%;
+}

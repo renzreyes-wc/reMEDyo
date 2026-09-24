@@ -1,0 +1,124 @@
+# Build and publish the technical documentation site.
+#
+# The API reference is not written by hand: it is emitted from the running
+# application, and that emission needs a database. `PrismaService.onModuleInit`
+# calls `$connect()`, so any process that instantiates `AppModule` — including
+# one that only wants to read the route table — opens a connection and fails
+# without one. Hence the service container below. It is the same image the
+# compose file uses, and it is the step most likely to break.
+#
+# Nothing here deploys the product. A failure in this workflow leaves the API
+# and web deployments untouched; it only means the documentation did not
+# republish.
+
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+  # So a docs change can be published without an unrelated commit to main.
+  workflow_dispatch:
+
+# Read the repository; the deploy job asks for more.
+permissions:
+  contents: read
+
+# One publish at a time. Queued rather than cancelled: a run that is already
+# building should finish and publish, not be discarded by the next commit.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build the site
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: remedyo
+          POSTGRES_PASSWORD: remedyo
+          POSTGRES_DB: remedyo
+        ports:
+          - 5432:5432
+        # Wait for the database to actually accept connections. Without this
+        # the migration step races the container's first boot and fails
+        # intermittently, which is the worst kind of CI failure.
+        options: >-
+          --health-cmd "pg_isready -U remedyo -d remedyo"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # The service container above. Nothing sensitive: this database exists
+      # for the duration of one job and holds seed-free schema only.
+      DATABASE_URL: postgresql://remedyo:remedyo@localhost:5432/remedyo?schema=public
+      # Not a secret. Present so the application starts without falling back
+      # to its development default.
+      JWT_SECRET: ci-only-not-a-real-secret
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          # Matches the runtime in the application Dockerfiles.
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The generated client is a build input for the API, and a clean
+      # checkout has none. It must come before anything that compiles the API.
+      - name: Generate the Prisma client
+        run: pnpm --filter @remedyo/api exec prisma generate
+
+      # The schema is all the emit needs; it reads the route table, not data.
+      - name: Apply migrations to the service database
+        run: pnpm --filter @remedyo/api exec prisma migrate deploy
+
+      # Builds the API and writes apps/api/openapi.json. Deliberately not
+      # cached or committed: regenerating it every run is what stops the
+      # published reference drifting from the routes the API serves.
+      - name: Emit the OpenAPI description
+        run: pnpm --filter @remedyo/api openapi:emit
+
+      # Fails on a broken internal link (onBrokenLinks: 'throw'), which is why
+      # a link to a page that does not exist cannot reach the published site.
+      - name: Build the documentation site
+        run: pnpm --filter @remedyo/docs build
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload the built site
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: apps/docs/build
+
+  # A separate job so that publishing happens only once the site has built.
+  # If the build fails, this job is skipped and the previously published site
+  # is left exactly as it was — nothing is deployed and nothing is removed.
+  deploy:
+    name: Deploy to Pages
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v5
