@@ -17,6 +17,10 @@ allowBuilds:
   # Pulled in by the Docusaurus toolchain. Its install script only prints a
   # funding notice; nothing it does is needed to build the site.
   core-js: false
+  # The TypeScript transform the integration tests run under, since esbuild —
+  # which vitest uses by default — does not emit the decorator metadata Nest's
+  # injector needs. A native module, so its install step is a real one.
+  '@swc/core': true
 
 minimumReleaseAgeExclude:
   - '@nestjs/swagger@12.0.2'

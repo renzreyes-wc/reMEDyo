@@ -1,11 +1,10 @@
 import 'reflect-metadata';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import cookieParser from 'cookie-parser';
 import { SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { AllExceptionsFilter } from './common/filters/http-exception.filter';
-import { API_GLOBAL_PREFIX, createOpenApiDocument } from './openapi';
+import { API_GLOBAL_PREFIX, configureApp } from './app.config';
+import { createOpenApiDocument } from './openapi';
 
 /**
  * The interactive API documentation is off unless this is exactly `true`.
@@ -21,30 +20,10 @@ const SWAGGER_UI_ENABLED = process.env.SWAGGER_UI === 'true';
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
 
-  app.setGlobalPrefix(API_GLOBAL_PREFIX);
-  app.use(cookieParser());
+  // Shared with the test harness, so a test runs the application as it is
+  // really configured rather than a differently-configured copy of it.
+  configureApp(app);
 
-  // The session cookie is httpOnly, so the browser only sends it when the
-  // frontend origin is explicitly allowed with credentials.
-  app.enableCors({
-    origin: process.env.WEB_ORIGIN ?? 'http://localhost:3000',
-    credentials: true,
-  });
-
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: { enableImplicitConversion: true },
-      // One message per field rather than every rule that failed: a missing
-      // field should read "Enter the dosage.", not three overlapping notes
-      // about type and length.
-      stopAtFirstError: true,
-    }),
-  );
-
-  app.useGlobalFilters(new AllExceptionsFilter());
   app.enableShutdownHooks();
 
   // Built from the running application, so it cannot drift from the routes

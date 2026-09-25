@@ -1,0 +1,65 @@
+# Deploy to Fly.io, but only a revision whose tests pass.
+#
+# Triggered by hand rather than on a green default branch. Whether deploys
+# become automatic is a question about the release cadence, not about testing,
+# and the change that added this left it open — so the workflow ships with the
+# conservative trigger and the gate either way.
+#
+# The `test` job is the same reusable workflow the pull-request check runs, so
+# a revision cannot be deployed on the strength of a suite that differs from the
+# one that gates its merge. `deploy` declares `needs: test`, which is what makes
+# the gate hold: a failing suite skips it entirely.
+#
+# Requires a FLY_API_TOKEN repository secret. Until one is set, this workflow
+# fails at the deploy step and nothing else is affected.
+
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: What to deploy
+        type: choice
+        options:
+          - both
+          - api
+          - web
+        default: both
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test the revision being deployed
+    uses: ./.github/workflows/test.yml
+
+  deploy:
+    name: Deploy to Fly.io
+    needs: test
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: superfly/flyctl-actions/setup-flyctl@1.5
+
+      # The API first. The web build bakes the API's public URL in at build
+      # time, so the API has to exist before the frontend points at it — the
+      # same ordering the manual instructions in the two fly.toml files give.
+      - name: Deploy the API
+        if: inputs.target == 'both' || inputs.target == 'api'
+        run: flyctl deploy . --remote-only --config apps/api/fly.toml
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Deploy the web app
+        if: inputs.target == 'both' || inputs.target == 'web'
+        run: |
+          flyctl deploy . --remote-only --config apps/web/fly.toml \
+            --build-arg NEXT_PUBLIC_API_URL=https://remedyo-api.fly.dev
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

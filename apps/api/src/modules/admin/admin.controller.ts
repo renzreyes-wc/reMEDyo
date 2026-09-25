@@ -1,5 +1,6 @@
 import { Body, Controller, Get, HttpCode, Param, Post, Query } from '@nestjs/common';
 import {
+  ApiCreatedResponse,
   ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
@@ -56,7 +57,7 @@ export class AdminController {
 
   @ApiOperation({ summary: 'Activate an account' })
   @ApiParam({ name: 'id', description: 'The account to activate.' })
-  @ApiOkResponse({ description: 'The account, now active.', type: AdminUserRowDto })
+  @ApiCreatedResponse({ description: 'The account, now active.', type: AdminUserRowDto })
   @Post('users/:id/activate')
   activate(
     @CurrentUser() admin: AuthUser,
@@ -70,7 +71,7 @@ export class AdminController {
     description: 'Takes effect on the account’s next request, not when its token expires.',
   })
   @ApiParam({ name: 'id', description: 'The account to suspend.' })
-  @ApiOkResponse({ description: 'The account, now suspended.', type: AdminUserRowDto })
+  @ApiCreatedResponse({ description: 'The account, now suspended.', type: AdminUserRowDto })
   @Post('users/:id/suspend')
   suspend(
     @CurrentUser() admin: AuthUser,
@@ -82,7 +83,7 @@ export class AdminController {
 
   @ApiOperation({ summary: 'Deactivate an account' })
   @ApiParam({ name: 'id', description: 'The account to deactivate.' })
-  @ApiOkResponse({ description: 'The account, now deactivated.', type: AdminUserRowDto })
+  @ApiCreatedResponse({ description: 'The account, now deactivated.', type: AdminUserRowDto })
   @Post('users/:id/deactivate')
   deactivate(
     @CurrentUser() admin: AuthUser,
@@ -160,7 +161,7 @@ export class AdminController {
     description: 'Recorded as cancelled by `ADMIN`, with the reason kept.',
   })
   @ApiParam({ name: 'id', description: 'The appointment to cancel.' })
-  @ApiOkResponse({ description: 'The cancelled appointment.', type: AppointmentDto })
+  @ApiCreatedResponse({ description: 'The cancelled appointment.', type: AppointmentDto })
   @Post('appointments/:id/cancel')
   cancelAppointment(
     @CurrentUser() admin: AuthUser,

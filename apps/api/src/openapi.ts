@@ -10,16 +10,9 @@ import type { Role } from '@prisma/client';
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { AppModule } from './app.module';
+import { configureApp } from './app.config';
 import { IS_PUBLIC_KEY } from './common/decorators/public.decorator';
 import { ROLES_KEY } from './common/decorators/roles.decorator';
-
-/**
- * Every route is mounted under this prefix. It lives here, rather than in
- * main.ts, because the emitted OpenAPI document encodes it: the paths in
- * openapi.json are the paths a client actually calls. One constant means the
- * document and the running application cannot disagree about them.
- */
-export const API_GLOBAL_PREFIX = 'api';
 
 /** The cookie the session token rides in, named as the security scheme. */
 export const SESSION_SECURITY_SCHEME = 'session';
@@ -183,9 +176,10 @@ async function emit(): Promise<void> {
   // on every build, but a warning from createOpenApiDocument must not be lost.
   const app = await NestFactory.create(AppModule, { logger: ['warn', 'error'] });
 
-  // Must match how main.ts configures the application before it builds the
-  // document, or the emitted paths would not be the paths clients call.
-  app.setGlobalPrefix(API_GLOBAL_PREFIX);
+  // The same configuration main.ts applies, so the paths in the document are
+  // the paths clients call. Restating just the prefix here is what used to
+  // happen, and it was one `main.ts` edit away from being wrong.
+  configureApp(app);
 
   // onModuleInit() connects Prisma; createDocument needs the routes registered.
   await app.init();
