@@ -1,0 +1,100 @@
+# Run the test suite.
+#
+# Two layers, one job. The pure-function tests need nothing but node; the
+# integration tests boot the application and drive it over HTTP, which means
+# they need a database — the same fact that shapes the documentation workflow,
+# since `PrismaService.onModuleInit()` connects on startup.
+#
+# The database is named for what it is. `test/setup.ts` refuses to run unless
+# the target database's name contains "test", because the integration suite
+# truncates every table it touches; naming the service container's database
+# anything else would leave that guard firing.
+
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  # So the deploy workflow can require exactly this suite rather than a copy of
+  # its steps. A duplicated gate is one that can drift from the thing it gates.
+  workflow_call:
+
+permissions:
+  contents: read
+
+# A new push supersedes the run it interrupted: on a pull request the earlier
+# result is about code that no longer exists, and on main the later run is the
+# one that matters.
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Unit and integration
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: remedyo
+          POSTGRES_PASSWORD: remedyo
+          POSTGRES_DB: remedyo_test
+        ports:
+          - 5432:5432
+        # Wait for the database to accept connections. Without this the
+        # migration step races the container's first boot and fails
+        # intermittently, which is the worst kind of CI failure.
+        options: >-
+          --health-cmd "pg_isready -U remedyo -d remedyo_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # Both point at the service container. The suite reads DATABASE_URL_TEST
+      # and redirects the application's own DATABASE_URL to it, so the two are
+      # the same database here by design — and neither is anyone's development
+      # database, which is the property that matters.
+      DATABASE_URL: postgresql://remedyo:remedyo@localhost:5432/remedyo_test?schema=public
+      DATABASE_URL_TEST: postgresql://remedyo:remedyo@localhost:5432/remedyo_test?schema=public
+      # Not a secret. Present so the application starts without falling back to
+      # its development default.
+      JWT_SECRET: ci-only-not-a-real-secret
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          # Matches the runtime in the application Dockerfiles.
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # A clean checkout has no generated client, and the API will not compile
+      # without one.
+      - name: Generate the Prisma client
+        run: pnpm --filter @remedyo/api exec prisma generate
+
+      # The integration suite exercises the real schema, so the database has to
+      # be migrated before any test runs.
+      - name: Apply migrations to the test database
+        run: pnpm --filter @remedyo/api exec prisma migrate deploy
+
+      # Both layers, as one command, so a change cannot pass here by having
+      # only the fast layer run. Failing tests fail this job, and a required
+      # check on the default branch turns that into a blocked merge.
+      - name: Run the test suite
+        run: pnpm test
+
+      # The type-level contract, which no runtime test covers: a drift between
+      # a response DTO and the shared type it mirrors is caught here or nowhere.
+      - name: Typecheck
+        run: pnpm -r typecheck

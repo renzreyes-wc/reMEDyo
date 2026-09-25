@@ -47,7 +47,7 @@ export class ConsultationsController {
       'Records the caller’s arrival. Whether joining is allowed is decided by the appointment’s state, not by the clock: a participant who is early or late still belongs in this room. Refused once the consultation has completed or the appointment was cancelled.',
   })
   @ApiParam({ name: 'appointmentId', description: 'The appointment the consultation belongs to.' })
-  @ApiOkResponse({ description: 'The consultation, updated with this caller’s arrival.', type: ConsultationContextDto })
+  @ApiCreatedResponse({ description: 'The consultation, updated with this caller’s arrival.', type: ConsultationContextDto })
   @Post(':appointmentId/join')
   join(
     @CurrentUser() user: AuthUser,
@@ -63,7 +63,7 @@ export class ConsultationsController {
       'The doctor ends the session. A patient cannot close a consultation, and a doctor who did not take part cannot either.',
   })
   @ApiParam({ name: 'appointmentId', description: 'The appointment the consultation belongs to.' })
-  @ApiOkResponse({ description: 'The consultation, now completed.', type: ConsultationContextDto })
+  @ApiCreatedResponse({ description: 'The consultation, now completed.', type: ConsultationContextDto })
   @Post(':appointmentId/complete')
   complete(
     @CurrentUser() user: AuthUser,

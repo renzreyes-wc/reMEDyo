@@ -74,7 +74,7 @@ export class AppointmentsController {
     description: 'Only the patient may move an appointment, and only before it starts.',
   })
   @ApiParam({ name: 'id', description: 'The appointment id.' })
-  @ApiOkResponse({ description: 'The appointment at its new time.', type: AppointmentDto })
+  @ApiCreatedResponse({ description: 'The appointment at its new time.', type: AppointmentDto })
   @Post(':id/reschedule')
   reschedule(
     @CurrentUser() user: AuthUser,
@@ -96,7 +96,7 @@ export class AppointmentsController {
       'Either participant may cancel. Refused once the consultation is completed or already cancelled. There is no time restriction — an appointment whose start has passed can still be cancelled.',
   })
   @ApiParam({ name: 'id', description: 'The appointment id.' })
-  @ApiOkResponse({ description: 'The cancelled appointment.', type: AppointmentDto })
+  @ApiCreatedResponse({ description: 'The cancelled appointment.', type: AppointmentDto })
   @Post(':id/cancel')
   cancel(
     @CurrentUser() user: AuthUser,

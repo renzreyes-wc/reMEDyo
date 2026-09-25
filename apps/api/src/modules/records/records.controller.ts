@@ -133,10 +133,10 @@ export class RecordsController {
   @ApiOperation({
     summary: 'Generate a note draft from the transcript',
     description:
-      'Generated scaffolding, not the record: it pre-fills the form and nothing else, and the doctor’s own save remains the only writer. A refusal — a transcript too thin to draft from, or assistance unavailable — is a 200 with `status: "refused"`, not an error.',
+      'Generated scaffolding, not the record: it pre-fills the form and nothing else, and the doctor’s own save remains the only writer. A refusal — a transcript too thin to draft from, or assistance unavailable — is a 201 carrying `status: "refused"`, not an error.',
   })
   @ApiParam({ name: 'appointmentId', description: 'The appointment to draft from.' })
-  @ApiOkResponse({
+  @ApiCreatedResponse({
     description: 'A draft, or the reason none was produced.',
     schema: {
       oneOf: [
