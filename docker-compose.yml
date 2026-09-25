@@ -82,6 +82,14 @@ services:
       LLM_ENABLED: ${LLM_ENABLED:-true}
       LLM_BASE_URL: http://ollama:11434
       LLM_MODEL: ${LLM_MODEL:-llama3.2:3b}
+      # Interactive API documentation, mounted at /api/docs. Off unless this
+      # is exactly "true".
+      #
+      # It must be named here to reach the container. This service passes an
+      # explicit environment map rather than an env_file, and only the
+      # variables listed are forwarded — so putting SWAGGER_UI in .env has no
+      # effect unless a line like this interpolates it.
+      SWAGGER_UI: ${SWAGGER_UI:-false}
     ports:
       - "4000:4000"
     healthcheck:
