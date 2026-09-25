@@ -73,7 +73,7 @@
 ## 11. Gates
 
 - [x] 11.1 Write `.github/workflows/deploy.yml` as a manually triggered workflow whose deploy job requires a passing test run against the revision being deployed, and verify a revision with a failing test is refused rather than deployed
-- [ ] 11.2 Set a `FLY_API_TOKEN` repository secret and verify the deploy workflow can run against a green revision
+- [ ] 11.2 Set a `FLY_API_TOKEN` repository secret and verify the deploy workflow can run against a green revision — **blocked on a token only the repository owner can mint**: `fly tokens create org` (or a deploy token), added as a repository secret. Not something the implementation can produce. Until it exists the deploy workflow is inert: a missing secret fails that workflow and affects nothing else, including the test gate on pull requests.
 - [ ] 11.3 Enable the test check as required on the default branch, and verify a change with a failing test cannot be merged
 
 ## 12. Acceptance
